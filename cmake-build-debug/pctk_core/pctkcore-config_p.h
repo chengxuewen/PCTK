@@ -1,0 +1,5 @@
+#ifndef _PCTKCORE_CONFIG_P_H
+#define _PCTKCORE_CONFIG_P_H
+
+
+#endif /* _PCTKCORE_CONFIG_P_H */

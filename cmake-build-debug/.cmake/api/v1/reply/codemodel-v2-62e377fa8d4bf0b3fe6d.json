@@ -1,0 +1,98 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.17"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "pctk_core",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-pctk_core-Debug-314d5635a5b2bb407b95.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "pctk_core",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "PCTK"
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "pctk_core",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "core::@7eb9dfbcc443df72b18a",
+					"jsonFile" : "target-core-Debug-994b65e7b860976954bf.json",
+					"name" : "core",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "platform::@7eb9dfbcc443df72b18a",
+					"jsonFile" : "target-platform-Debug-513f21713a7bb2b1f9da.json",
+					"name" : "platform",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/cxw/Documents/Code/Work/PCTK/PCTK/cmake-build-debug",
+		"source" : "/Users/cxw/Documents/Code/Work/PCTK/PCTK"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}

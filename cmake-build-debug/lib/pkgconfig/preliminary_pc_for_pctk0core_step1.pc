@@ -1,0 +1,14 @@
+prefix=/usr/local/PCTK-0.4.18
+exec_prefix=${prefix}
+bindir=${prefix}/bin
+libexecdir=${prefix}/./libexec
+libdir=${prefix}/lib
+includedir=${prefix}/include
+$<$<BOOL:>:mkspecsdir=${prefix}/mkspecs>
+$<1: >
+Name: pctk0 core
+Description: PCTK core module
+Version: 0.1.1
+Libs: $<$<NOT:$<STREQUAL:$<TARGET_PROPERTY:pctk0::core,TYPE>,INTERFACE_LIBRARY>>:-L${libdir} -lpctk0core> $<$<BOOL:loose_link_options-NOTFOUND>:$<JOIN:$<REMOVE_DUPLICATES:loose_link_options-NOTFOUND>, >> $<JOIN:$<REMOVE_DUPLICATES:>, >
+Cflags: $<$<BOOL:${includedir}/pctk_core;${includedir}>:-I$<JOIN:$<REMOVE_DUPLICATES:${includedir}/pctk_core;${includedir}>, -I>> $<$<BOOL:PCTK_CORE_LIB>:-D$<JOIN:$<REMOVE_DUPLICATES:PCTK_CORE_LIB>, -D>>
+Requires: $<JOIN:$<REMOVE_DUPLICATES:>, >
