@@ -40,10 +40,10 @@ function(__pctk_internal_static_link_order_public_test result)
     endif()
 
     try_compile(${result}
-            "${CMAKE_CURRENT_BINARY_DIR}/config.tests/static_link_order"
-            "${test_source_basedir}/config.tests/static_link_order"
-            static_link_order_test
-            static_link_order_test)
+        "${CMAKE_CURRENT_BINARY_DIR}/config.tests/static_link_order"
+        "${test_source_basedir}/config.tests/static_link_order"
+        static_link_order_test
+        static_link_order_test)
     message(STATUS "Check if linker can resolve circular dependencies - ${${result}}")
 
     # Invert the result
@@ -83,7 +83,7 @@ endfunction()
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Function combines __pctk_internal_static_link_order_public_test and
-# __pctk_internal_set_link_order_matters calls on pctk::platform target.
+# __pctk_internal_set_link_order_matters calls on PCTK::platform target.
 #-----------------------------------------------------------------------------------------------------------------------
 function(__pctk_internal_check_link_order_matters)
     __pctk_internal_static_link_order_public_test(link_order_matters)
@@ -148,11 +148,11 @@ function(__pctk_internal_process_dependency_object_libraries target)
     set_target_properties(${target} PROPERTIES _pctk_object_libraries_finalizer_processed TRUE)
 
     get_target_property(pctk_link_order_matters
-            ${PCTK_CMAKE_EXPORT_NAMESPACE}::platform _pctk_link_order_matters)
+        ${PCTK_CMAKE_EXPORT_NAMESPACE}::platform _pctk_link_order_matters)
     __pctk_internal_check_finalizer_mode(${target}
-            use_finalizer_mode
-            object_libraries
-            DEFAULT_VALUE "${pctk_link_order_matters}")
+        use_finalizer_mode
+        object_libraries
+        DEFAULT_VALUE "${pctk_link_order_matters}")
 
     if(NOT use_finalizer_mode)
         return()
@@ -173,8 +173,8 @@ function(__pctk_internal_collect_dependency_object_libraries target out_var)
     # Collect object libraries of plugins and plugin dependencies.
     __pctk_internal_collect_plugin_targets_from_dependencies(${target} plugin_targets)
     __pctk_internal_collect_dependency_plugin_object_libraries(${target}
-            "${plugin_targets}"
-            plugin_objects)
+        "${plugin_targets}"
+        plugin_objects)
 
     set_property(GLOBAL PROPERTY _pctk_processed_object_libraries "")
     __pctk_internal_get_cmp0099_genex_check(cmp0099_check)
@@ -196,19 +196,19 @@ function(__pctk_internal_collect_dependency_plugin_object_libraries target plugi
     set(plugin_objects "")
     foreach(plugin_target IN LISTS plugin_targets)
         __pctk_internal_collect_object_libraries_recursively(plugin_object_libraries
-                "${PCTK_CMAKE_EXPORT_NAMESPACE}::${plugin_target}"
-                ${target})
+            "${PCTK_CMAKE_EXPORT_NAMESPACE}::${plugin_target}"
+            ${target})
         __pctk_internal_get_static_plugin_condition_genex("${plugin_target}" plugin_condition)
 
         foreach(plugin_object_library IN LISTS plugin_object_libraries)
             string(JOIN "" plugin_objects_genex
-                    "$<"
-                    "$<AND:"
-                    "$<NOT:${cmp0099_check}>,"
-                    "${plugin_condition}"
-                    ">"
-                    ":$<TARGET_OBJECTS:${plugin_object_library}>"
-                    ">")
+                "$<"
+                "$<AND:"
+                "$<NOT:${cmp0099_check}>,"
+                "${plugin_condition}"
+                ">"
+                ":$<TARGET_OBJECTS:${plugin_object_library}>"
+                ">")
             list(APPEND plugin_objects "${plugin_objects_genex}")
         endforeach()
     endforeach()
@@ -256,8 +256,8 @@ function(__pctk_internal_collect_object_libraries_recursively out_var target ini
                 list(APPEND object_libraries ${lib})
             else()
                 __pctk_internal_collect_object_libraries_recursively(next_level_object_libraries
-                        ${lib}
-                        ${initial_target})
+                    ${lib}
+                    ${initial_target})
                 list(APPEND object_libraries ${next_level_object_libraries})
             endif()
         endif()
@@ -313,8 +313,8 @@ endfunction()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-# This function ends up being called multiple times as part of a find_package(PCTK6Foo) call,
-# due sub-packages depending on the PCTK6 package. Ensure the finalizer is ran only once per
+# This function ends up being called multiple times as part of a find_package(PCTKFoo) call,
+# due sub-packages depending on the PCTK package. Ensure the finalizer is ran only once per
 # directory scope.
 #-----------------------------------------------------------------------------------------------------------------------
 function(__pctk_internal_defer_promote_targets_in_dir_scope_to_global)
@@ -332,10 +332,9 @@ endfunction()
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_set_up_static_runtime_library target)
-    if(PCTK_FEATURE_static_runtime)
+    if(PCTK_FEATURE_STATIC_RUNTIME)
         if(MSVC)
-            set_property(TARGET ${target} PROPERTY
-                    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+            set_property(TARGET ${target} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
         elseif(MINGW)
             target_link_options(${target} INTERFACE "LINKER:-Bstatic")
         endif()

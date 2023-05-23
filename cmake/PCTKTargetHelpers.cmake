@@ -13,8 +13,8 @@ function(pctk_internal_extend_target target)
         message(FATAL_ERROR "Trying to extend non-existing target \"${target}\".")
     endif()
 
-    pctk_parse_all_arguments(arg "pctk_extend_target" "HEADER_MODULE" "PRECOMPILED_HEADER"
-        "CONDITION;${__default_public_args};${__default_private_args};${__default_private_module_args};COMPILE_FLAGS;NO_PCH_SOURCES" ${ARGN})
+    pctk_parse_all_arguments(arg "pctk_internal_extend_target" "HEADER_LIBRARY" "PRECOMPILED_HEADER"
+        "CONDITION;${PCTK_DEFAULT_PUBLIC_ARGS};${PCTK_DEFAULT_PRIVATE_ARGS};${PCTK_DEFAULT_PRIVATE_LIBRARY_ARGS};COMPILE_FLAGS;NO_PCH_SOURCES" ${ARGN})
     if("x${arg_CONDITION}" STREQUAL x)
         set(arg_CONDITION ON)
     endif()
@@ -48,9 +48,9 @@ function(pctk_internal_extend_target target)
         # CMake versions less than 3.19 don't support adding the source files to the PRIVATE scope
         # of the INTERFACE libraries. These PRIVATE sources are only needed by IDEs to display
         # them in a project tree, so to avoid build issues and appearing the sources in
-        # INTERFACE_SOURCES property of HEADER_MODULE let's simply exclude them for compatibility
+        # INTERFACE_SOURCES property of HEADER_LIBRARY let's simply exclude them for compatibility
         # with CMake versions less than 3.19.
-        if(NOT arg_HEADER_MODULE OR CMAKE_VERSION VERSION_GREATER_EQUAL "3.19")
+        if(NOT arg_HEADER_LIBRARY OR CMAKE_VERSION VERSION_GREATER_EQUAL "3.19")
             target_sources("${target}" PRIVATE ${arg_SOURCES} ${dbus_sources})
             if(arg_COMPILE_FLAGS)
                 set_source_files_properties(${arg_SOURCES} PROPERTIES
@@ -60,7 +60,7 @@ function(pctk_internal_extend_target target)
 
         set(public_visibility_option "PUBLIC")
         set(private_visibility_option "PRIVATE")
-        if(arg_HEADER_MODULE)
+        if(arg_HEADER_LIBRARY)
             set(public_visibility_option "INTERFACE")
             set(private_visibility_option "INTERFACE")
         endif()
@@ -90,39 +90,32 @@ function(pctk_internal_extend_target target)
         # CorePrivate).
         set(pctk_libs_private "")
         foreach(it ${known_modules})
-            list(FIND arg_LIBRARIES "pctk::${it}Private" pos)
+            list(FIND arg_LIBRARIES "PCTK::${it}Private" pos)
             if(pos GREATER -1)
-                list(APPEND pctk_libs_private "pctk::${it}Private")
+                list(APPEND pctk_libs_private "PCTK::${it}Private")
             endif()
         endforeach()
 
         set(target_private "${target}Private")
-        get_target_property(is_internal_module ${target} _pctk_is_internal_module)
-        # Internal modules don't have Private targets but we still need to
-        # propagate their private dependencies.
-        if(is_internal_module)
+        get_target_property(is_internal_library ${target} _pctk_is_internal_library)
+        # Internal modules don't have Private targets but we still need to propagate their private dependencies.
+        if(is_internal_library)
             set(target_private "${target}")
         endif()
         if(TARGET "${target_private}")
-            target_link_libraries("${target_private}"
-                INTERFACE ${arg_PRIVATE_MODULE_INTERFACE})
-        elseif(arg_PRIVATE_MODULE_INTERFACE)
+            target_link_libraries("${target_private}" INTERFACE ${arg_PRIVATE_LIBRARY_INTERFACE})
+        elseif(arg_PRIVATE_LIBRARY_INTERFACE)
             set(warning_message "")
             string(APPEND warning_message
-                "The PRIVATE_MODULE_INTERFACE option was provided the values:"
-                "'${arg_PRIVATE_MODULE_INTERFACE}' "
+                "The PRIVATE_LIBRARY_INTERFACE option was provided the values:"
+                "'${arg_PRIVATE_LIBRARY_INTERFACE}' "
                 "but there is no ${target}Private target to assign them to."
                 "Ensure the target exists or remove the option.")
             message(AUTHOR_WARNING "${warning_message}")
         endif()
         pctk_register_target_dependencies("${target}"
-            "${arg_PUBLIC_LIBRARIES};${arg_PRIVATE_MODULE_INTERFACE}"
+            "${arg_PUBLIC_LIBRARIES};${arg_PRIVATE_LIBRARY_INTERFACE}"
             "${pctk_libs_private};${arg_LIBRARIES}")
-
-
-        #        pctk_autogen_tools(${target}
-        #            ENABLE_AUTOGEN_TOOLS ${arg_ENABLE_AUTOGEN_TOOLS}
-        #            DISABLE_AUTOGEN_TOOLS ${arg_DISABLE_AUTOGEN_TOOLS})
 
         pctk_update_precompiled_header("${target}" "${arg_PRECOMPILED_HEADER}")
         pctk_update_ignore_pch_source("${target}" "${arg_NO_PCH_SOURCES}")
@@ -139,8 +132,8 @@ endfunction()
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Marks a target with a property that it is a library (shared or static) which was built using the
-# internal PCTK API (pctk_internal_add_module, pctk_internal_add_plugin, etc) as opposed to it being
-# a user project library (pctk_add_library, pctk_add_plugin, etc).
+# internal PCTK API (pctk_internal_add_library, pctk_internal_add_plugin, etc) as opposed to it being
+# a user project library (pctk_internal_add_library, pctk_add_plugin, etc).
 #
 # Needed to allow selectively applying certain flags via platformXinternal targets.
 #-----------------------------------------------------------------------------------------------------------------------
@@ -150,20 +143,20 @@ endfunction()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-# Common function to add PCTK prefixes to the target name
+# Common function to add PCTK prefixes to the target name, use the PCTK'fied library name as a framework identifier.
 #-----------------------------------------------------------------------------------------------------------------------
-function(pctk_internal_pctkfy_target out_var target) ###TODO: del
-    set(${out_var} "pctk_${target}" PARENT_SCOPE)
-    set(${out_var}_versioned "pctk${PROJECT_VERSION_MAJOR}_${target}" PARENT_SCOPE)
+function(pctk_internal_target_add_fied out_var target)
+    set(${out_var} "PCTK${target}" PARENT_SCOPE)
+    set(${out_var}_versioned "PCTK${PCTK_NAMESPACE_VERSION}${target}" PARENT_SCOPE)
 endfunction()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-# Add pctk::target and PCTK0::target as aliases for the target
+# Add PCTK::target and PCTK0::target as aliases for the target
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_add_target_aliases target)
-    set(versionless_alias "pctk::${target}")
-    set(versionfull_alias "pctk${PROJECT_VERSION_MAJOR}::${target}")
+    set(versionless_alias "PCTK::${target}")
+    set(versionfull_alias "PCTK${PCTK_NAMESPACE_VERSION}::${target}")
     set_target_properties("${target}" PROPERTIES _pctk_versionless_alias "${versionless_alias}")
     set_target_properties("${target}" PROPERTIES _pctk_versionfull_alias "${versionfull_alias}")
 
@@ -184,7 +177,7 @@ endfunction()
 # On Windows, these properties are used to generate the version information resource.
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_set_target_info_properties target)
-    cmake_parse_arguments(arg "" "${__default_target_info_args}" "" ${ARGN})
+    cmake_parse_arguments(arg "" "${PCTK_DEFAULT_TARGET_INFO_ARGS}" "" ${ARGN})
     if("${arg_TARGET_VERSION}" STREQUAL "")
         set(arg_TARGET_VERSION "${PROJECT_VERSION}.0")
     endif()
@@ -315,11 +308,11 @@ macro(pctk_internal_get_export_additional_targets_keywords option_args single_ar
 endmacro()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Create a PCTK*AdditionalTargetInfo.cmake file that is included by PCTK*Config.cmake
 # and sets IMPORTED_*_<CONFIG> properties on the exported targets.
 #
-# The file also makes the targets global if the PCTK_PROMOTE_TO_GLOBAL_TARGETS property is set in the
-# consuming project.
+# The file also makes the targets global if the PCTK_PROMOTE_TO_GLOBAL_TARGETS property is set in the consuming project.
 # When using a CMake version lower than 3.21, only the specified TARGETS are made global.
 # E.g. transitive non-PCTK 3rd party targets of the specified targets are not made global.
 #
@@ -335,9 +328,9 @@ endmacro()
 #    This argument may be empty, then the target export names are the same as the internal ones.
 #
 # TARGETS and TARGET_EXPORT_NAMES must contain exactly the same number of elements.
-# Example: TARGETS = qmljs_native
-#          TARGET_EXPORT_NAMES = PCTK6::qmljs
-#
+# Example: TARGETS = scriptjs_native
+#          TARGET_EXPORT_NAMES = PCTK::ScriptJs
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_export_additional_targets_file)
     pctk_internal_get_export_additional_targets_keywords(option_args single_args multi_args)
     cmake_parse_arguments(arg
@@ -354,17 +347,22 @@ function(pctk_internal_export_additional_targets_file)
     set_property(GLOBAL APPEND
         PROPERTY _pctk_export_additional_targets_config_install_dir_${id} "${arg_CONFIG_INSTALL_DIR}")
 
+#    message(id=${id})
+#    message(arg_EXPORT_NAME_PREFIX=${arg_EXPORT_NAME_PREFIX})
+#    message(arg_CONFIG_INSTALL_DIR=${arg_CONFIG_INSTALL_DIR})
     pctk_add_list_file_finalizer(pctk_internal_export_additional_targets_file_finalizer)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Uses outer-scope variables to keep the implementation less verbose.
+#-----------------------------------------------------------------------------------------------------------------------
 macro(pctk_internal_append_export_additional_targets)
     pctk_internal_validate_export_additional_targets(
         EXPORT_NAME_PREFIX "${arg_EXPORT_NAME_PREFIX}"
         TARGETS ${arg_TARGETS}
         TARGET_EXPORT_NAMES ${arg_TARGET_EXPORT_NAMES})
-
+#    message(arg_EXPORT_NAME_PREFIX=${arg_EXPORT_NAME_PREFIX})
     pctk_internal_get_export_additional_targets_id("${arg_EXPORT_NAME_PREFIX}" id)
 
     set_property(GLOBAL APPEND PROPERTY _pctk_export_additional_targets_${id} "${arg_TARGETS}")
@@ -372,12 +370,16 @@ macro(pctk_internal_append_export_additional_targets)
 endmacro()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_get_export_additional_targets_id export_name out_var)
     string(MAKE_C_IDENTIFIER "${export_name}" id)
     set(${out_var} "${id}" PARENT_SCOPE)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_validate_export_additional_targets)
     pctk_internal_get_export_additional_targets_keywords(option_args single_args multi_args)
     cmake_parse_arguments(arg
@@ -409,6 +411,8 @@ function(pctk_internal_validate_export_additional_targets)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_export_modern_cmake_config_targets_file)
     cmake_parse_arguments(__arg "" "EXPORT_NAME_PREFIX;CONFIG_INSTALL_DIR" "TARGETS" ${ARGN})
 
@@ -428,10 +432,11 @@ function(pctk_internal_export_modern_cmake_config_targets_file)
 
         pctk_install(TARGETS "${target}Versionless" EXPORT ${export_name})
     endforeach()
-    pctk_install(EXPORT ${export_name} NAMESPACE pctk:: DESTINATION "${__arg_CONFIG_INSTALL_DIR}")
+    pctk_install(EXPORT ${export_name} NAMESPACE PCTK:: DESTINATION "${__arg_CONFIG_INSTALL_DIR}")
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Installs pdb files for given target into the specified install dir.
 #
 # MSVC generates 2 types of pdb files:
@@ -456,6 +461,7 @@ endfunction()
 # path to the pdb file, and reconstruct the file name. We use a generator expression
 # to append a possible debug suffix, in order to allow installation of all Release and
 # Debug pdb files when using Ninja Multi-Config.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_install_pdb_files target install_dir_path)
     if(MSVC)
         get_target_property(target_type ${target} TYPE)
@@ -505,11 +511,12 @@ function(pctk_internal_install_pdb_files target install_dir_path)
 endfunction()
 
 
-# The finalizer might be called multiple times in the same scope, but only the first one will
-# process all the ids.
+#-----------------------------------------------------------------------------------------------------------------------
+# The finalizer might be called multiple times in the same scope, but only the first one will process all the ids.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_export_additional_targets_file_finalizer)
     get_property(ids GLOBAL PROPERTY _pctk_export_additional_targets_ids)
-
+#    message(ids=${ids})
     foreach(id ${ids})
         pctk_internal_export_additional_targets_file_handler("${id}")
     endforeach()
@@ -518,6 +525,8 @@ function(pctk_internal_export_additional_targets_file_finalizer)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_export_additional_targets_file_handler id)
     get_property(arg_EXPORT_NAME_PREFIX GLOBAL PROPERTY
         _pctk_export_additional_targets_export_name_prefix_${id})
@@ -564,10 +573,10 @@ function(pctk_internal_export_additional_targets_file_handler id)
     endif()
 
     set(content "# Additional target information for ${arg_EXPORT_NAME_PREFIX}
-if(NOT DEFINED PCTK_DEFAULT_IMPORT_CONFIGURATION)
-    set(PCTK_DEFAULT_IMPORT_CONFIGURATION ${uc_default_cfg})
-endif()
-")
+        if(NOT DEFINED PCTK_DEFAULT_IMPORT_CONFIGURATION)
+        set(PCTK_DEFAULT_IMPORT_CONFIGURATION ${uc_default_cfg})
+        endif()
+        ")
 
     math(EXPR n "${num_TARGETS} - 1")
     foreach(i RANGE ${n})
@@ -579,8 +588,7 @@ endif()
             string(PREPEND full_target "${PCTK_CMAKE_EXPORT_NAMESPACE}::")
         endif()
 
-        # Tools are already made global unconditionally in PCTKFooToolsConfig.cmake.
-        # And the
+        # Tools are already made global unconditionally in PCTKFooToolsConfig.cmake. And the
         get_target_property(target_type ${target} TYPE)
         if(NOT target_type STREQUAL "EXECUTABLE")
             string(APPEND content
@@ -602,14 +610,14 @@ endif()
             get_target_property(excluded_genex ${target} EXCLUDE_FROM_ALL)
             if(NOT excluded_genex STREQUAL "")
                 string(APPEND content "
-# ${full_target} is not built by default in the Debug configuration. Check existence.
-get_target_property(_pctk_imported_location ${full_target} IMPORTED_LOCATION_DEBUG)
-if(NOT EXISTS \"$\\{_pctk_imported_location}\")
-    get_target_property(_pctk_imported_configs ${full_target} IMPORTED_CONFIGURATIONS)
-    list(REMOVE_ITEM _pctk_imported_configs DEBUG)
-    set_property(TARGET ${full_target} PROPERTY IMPORTED_CONFIGURATIONS $\\{_pctk_imported_configs})
-    set_property(TARGET ${full_target} PROPERTY IMPORTED_LOCATION_DEBUG)
-endif()\n\n")
+                    # ${full_target} is not built by default in the Debug configuration. Check existence.
+                    get_target_property(_pctk_imported_location ${full_target} IMPORTED_LOCATION_DEBUG)
+                    if(NOT EXISTS \"$\\{_pctk_imported_location}\")
+                    get_target_property(_pctk_imported_configs ${full_target} IMPORTED_CONFIGURATIONS)
+                    list(REMOVE_ITEM _pctk_imported_configs DEBUG)
+                    set_property(TARGET ${full_target} PROPERTY IMPORTED_CONFIGURATIONS $\\{_pctk_imported_configs})
+                    set_property(TARGET ${full_target} PROPERTY IMPORTED_LOCATION_DEBUG)
+                    endif()\n\n")
             endif()
         endif()
 
@@ -624,20 +632,26 @@ endif()\n\n")
         endif()
 
         if(NOT "${uc_release_cfg}" STREQUAL "")
-            string(APPEND content "get_target_property(_pctk_imported_location ${full_target} IMPORTED_LOCATION_${uc_release_cfg})\n")
+            string(APPEND content
+                "get_target_property(_pctk_imported_location ${full_target} IMPORTED_LOCATION_${uc_release_cfg})\n")
             if(write_implib)
-                string(APPEND content "get_target_property(_pctk_imported_implib ${full_target} IMPORTED_IMPLIB_${uc_release_cfg})\n")
+                string(APPEND content
+                    "get_target_property(_pctk_imported_implib ${full_target} IMPORTED_IMPLIB_${uc_release_cfg})\n")
             endif()
             if(write_soname)
-                string(APPEND content "get_target_property(_pctk_imported_soname ${full_target} IMPORTED_SONAME_${uc_release_cfg})\n")
+                string(APPEND content
+                    "get_target_property(_pctk_imported_soname ${full_target} IMPORTED_SONAME_${uc_release_cfg})\n")
             endif()
         endif()
-        string(APPEND content "get_target_property(_pctk_imported_location_default ${full_target} IMPORTED_LOCATION_$\\{PCTK_DEFAULT_IMPORT_CONFIGURATION})\n")
+        string(APPEND content
+            "get_target_property(_pctk_imported_location_default ${full_target} IMPORTED_LOCATION_$\\{PCTK_DEFAULT_IMPORT_CONFIGURATION})\n")
         if(write_implib)
-            string(APPEND content "get_target_property(_pctk_imported_implib_default ${full_target} IMPORTED_IMPLIB_$\\{PCTK_DEFAULT_IMPORT_CONFIGURATION})\n")
+            string(APPEND content
+                "get_target_property(_pctk_imported_implib_default ${full_target} IMPORTED_IMPLIB_$\\{PCTK_DEFAULT_IMPORT_CONFIGURATION})\n")
         endif()
         if(write_soname)
-            string(APPEND content "get_target_property(_pctk_imported_soname_default ${full_target} IMPORTED_SONAME_$\\{PCTK_DEFAULT_IMPORT_CONFIGURATION})\n")
+            string(APPEND content
+                "get_target_property(_pctk_imported_soname_default ${full_target} IMPORTED_SONAME_$\\{PCTK_DEFAULT_IMPORT_CONFIGURATION})\n")
         endif()
         foreach(config ${configurations_to_export} "")
             string(TOUPPER "${config}" ucconfig)
@@ -649,25 +663,25 @@ endif()\n\n")
                 set(property_suffix "_${ucconfig}")
                 set(var_suffix "")
                 string(APPEND content "
-# Import target \"${full_target}\" for configuration \"${config}\"
-set_property(TARGET ${full_target} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${ucconfig})
-")
+                    # Import target \"${full_target}\" for configuration \"${config}\"
+                    set_property(TARGET ${full_target} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${ucconfig})
+                    ")
             endif()
             string(APPEND content "
-if(_pctk_imported_location${var_suffix})
-    set_property(TARGET ${full_target} PROPERTY IMPORTED_LOCATION${property_suffix} \"$\\{_pctk_imported_location${var_suffix}}\")
-endif()")
+                    if(_pctk_imported_location${var_suffix})
+                        set_property(TARGET ${full_target} PROPERTY IMPORTED_LOCATION${property_suffix} \"$\\{_pctk_imported_location${var_suffix}}\")
+                    endif()")
             if(write_implib)
                 string(APPEND content "
-if(_pctk_imported_implib${var_suffix})
-    set_property(TARGET ${full_target} PROPERTY IMPORTED_IMPLIB${property_suffix} \"$\\{_pctk_imported_implib${var_suffix}}\")
-endif()")
+                    if(_pctk_imported_implib${var_suffix})
+                        set_property(TARGET ${full_target} PROPERTY IMPORTED_IMPLIB${property_suffix} \"$\\{_pctk_imported_implib${var_suffix}}\")
+                    endif()")
             endif()
             if(write_soname)
                 string(APPEND content "
-if(_pctk_imported_soname${var_suffix})
-    set_property(TARGET ${full_target} PROPERTY IMPORTED_SONAME${property_suffix} \"$\\{_pctk_imported_soname${var_suffix}}\")
-endif()")
+                    if(_pctk_imported_soname${var_suffix})
+                        set_property(TARGET ${full_target} PROPERTY IMPORTED_SONAME${property_suffix} \"$\\{_pctk_imported_soname${var_suffix}}\")
+                    endif()")
             endif()
             string(APPEND content "\n")
         endforeach()
@@ -675,15 +689,14 @@ endif()")
 
     if(properties_retrieved)
         string(APPEND content "
-unset(_pctk_imported_location)
-unset(_pctk_imported_location_default)
-unset(_pctk_imported_soname)
-unset(_pctk_imported_soname_default)
-unset(_pctk_imported_configs)")
+            unset(_pctk_imported_location)
+            unset(_pctk_imported_location_default)
+            unset(_pctk_imported_soname)
+            unset(_pctk_imported_soname_default)
+            unset(_pctk_imported_configs)")
     endif()
 
-    pctk_path_join(output_file "${arg_CONFIG_INSTALL_DIR}"
-        "${arg_EXPORT_NAME_PREFIX}AdditionalTargetInfo.cmake")
+    pctk_path_join(output_file "${arg_CONFIG_INSTALL_DIR}" "${arg_EXPORT_NAME_PREFIX}AdditionalTargetInfo.cmake")
     if(NOT IS_ABSOLUTE "${output_file}")
         pctk_path_join(output_file "${PCTK_BUILD_DIR}" "${output_file}")
     endif()

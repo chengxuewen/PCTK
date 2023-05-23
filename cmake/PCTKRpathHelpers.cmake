@@ -138,7 +138,7 @@ endfunction()
 # and https://gitlab.kitware.com/cmake/cmake/-/issues/23421
 #
 # This macro is only meant to be called in functions like
-# pctk_internal_add_module / pctk_internal_add_tool to ensure the variable is set in the
+# pctk_internal_add_library / pctk_internal_add_tool to ensure the variable is set in the
 # subdirectory scope of the calling function, and not in the actual function scope (where the
 # variable assignment would have no effect).
 #

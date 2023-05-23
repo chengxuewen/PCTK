@@ -101,12 +101,12 @@ if (TARGET @PCTK_CMAKE_EXPORT_NAMESPACE@::@target@)
 
     list(APPEND PCTK_ALL_MODULES_FOUND_VIA_FIND_PACKAGE "@target@")
 
-    get_target_property(_pctk_module_target_type "@INSTALL_CMAKE_NAMESPACE@::@target@" TYPE)
-    if(NOT _pctk_module_target_type STREQUAL "INTERFACE_LIBRARY")
-        get_target_property(_pctk_module_plugin_types
-                            @INSTALL_CMAKE_NAMESPACE@::@target@ MODULE_PLUGIN_TYPES)
-        if(_pctk_module_plugin_types)
-            list(APPEND PCTK_ALL_PLUGIN_TYPES_FOUND_VIA_FIND_PACKAGE "${_pctk_module_plugin_types}")
+    get_target_property(_pctk_library_target_type "@INSTALL_CMAKE_NAMESPACE@::@target@" TYPE)
+    if(NOT _pctk_library_target_type STREQUAL "INTERFACE_LIBRARY")
+        get_target_property(_pctk_library_plugin_types
+                            @INSTALL_CMAKE_NAMESPACE@::@target@ LIBRARY_PLUGIN_TYPES)
+        if(_pctk_library_plugin_types)
+            list(APPEND PCTK_ALL_PLUGIN_TYPES_FOUND_VIA_FIND_PACKAGE "${_pctk_library_plugin_types}")
         endif()
     endif()
 

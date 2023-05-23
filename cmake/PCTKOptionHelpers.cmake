@@ -28,7 +28,7 @@
 
 include(CMakeDependentOption)
 
-
+#-----------------------------------------------------------------------------------------------------------------------
 # Provides an option that the user can optionally select.
 # Can accept condition to control when option is available for user.
 # Usage:
@@ -41,6 +41,7 @@ include(CMakeDependentOption)
 #          [SET_NEGATE <set variable negative value to other variables>]
 #          [VERIFY <condition>])
 # Examples:
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_option variable description value)
     pctk_parse_all_arguments(arg
             "pctk_option"

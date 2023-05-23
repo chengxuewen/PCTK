@@ -1,3 +1,5 @@
+
+#-----------------------------------------------------------------------------------------------------------------------
 # Add a finalizer function for the current CMake list file.
 # It will be processed just before leaving the current source directory scope.
 #
@@ -11,6 +13,7 @@
 # When using CMake 3.19 or higher, no more IGNORE parameters are passed. Instead we
 # use cmake_language(DEFER CALL) and pass arguments as usual.
 # pctk_watch_current_list_dir also doesn't need to know about the finalizer
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_add_list_file_finalizer func)
     set(use_cmake_defer_call TRUE)
     if(CMAKE_VERSION VERSION_LESS "3.19.0")
@@ -34,8 +37,11 @@ function(pctk_add_list_file_finalizer func)
     endif()
 endfunction()
 
+
+#-----------------------------------------------------------------------------------------------------------------------
 # Watcher function for the variable CMAKE_CURRENT_LIST_DIR.
 # This is the driver of the finalizer facility.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_watch_current_list_dir variable access value current_list_file stack)
     if(NOT access STREQUAL "MODIFIED_ACCESS")
         # We are only interested in modifications of CMAKE_CURRENT_LIST_DIR.

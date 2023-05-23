@@ -37,3 +37,95 @@ function(pctk_install)
         export(EXPORT ${arg_EXPORT} ${namespace_option} FILE "${arg_DESTINATION}/${arg_EXPORT}.cmake")
     endif()
 endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_configure_process_path name default docstring)
+    # No value provided, set the default.
+    if(NOT DEFINED "${name}")
+        set("${name}" "${default}" CACHE STRING "${docstring}")
+    else()
+        get_filename_component(given_path_as_abs "${${name}}" ABSOLUTE BASE_DIR "${CMAKE_INSTALL_PREFIX}")
+        file(RELATIVE_PATH rel_path "${CMAKE_INSTALL_PREFIX}" "${given_path_as_abs}")
+
+        # If absolute path given, check that it's inside the prefix (error out if not).
+        # TODO: Figure out if we need to support paths that are outside the prefix.
+        #
+        # If relative path given, it's relative to the install prefix (rather than the binary dir,
+        # which is what qmake does for some reason).
+        # In both cases, store the value as a relative path.
+        if("${rel_path}" STREQUAL "")
+            # file(RELATIVE_PATH) returns an empty string if the given absolute paths are equal
+            set(rel_path ".")
+        elseif(rel_path MATCHES "^\.\./")
+            # INSTALL_SYSCONFDIR is allowed to be outside the prefix.
+            if(NOT name STREQUAL "INSTALL_SYSCONFDIR")
+                message(FATAL_ERROR "Path component '${name}' is outside computed install prefix: ${rel_path} ")
+                return()
+            endif()
+            set("${name}" "${${name}}" CACHE STRING "${docstring}" FORCE)
+        else()
+            set("${name}" "${rel_path}" CACHE STRING "${docstring}" FORCE)
+        endif()
+    endif()
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Given CMAKE_CONFIG and ALL_CMAKE_CONFIGS, determines if a directory suffix needs to be appended
+# to each destination, and sets the computed install target destination arguments in OUT_VAR.
+# Defaults used for each of the destination types, and can be configured per destination type.
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_get_install_target_default_args)
+    pctk_parse_all_arguments(arg "pctk_get_install_target_default_args"
+        "" "OUT_VAR;CMAKE_CONFIG;RUNTIME;LIBRARY;ARCHIVE;INCLUDES;BUNDLE"
+        "ALL_CMAKE_CONFIGS" ${ARGN})
+
+    if(NOT arg_CMAKE_CONFIG)
+        message(FATAL_ERROR "No value given for CMAKE_CONFIG.")
+    endif()
+    if(NOT arg_ALL_CMAKE_CONFIGS)
+        message(FATAL_ERROR "No value given for ALL_CMAKE_CONFIGS.")
+    endif()
+    list(LENGTH arg_ALL_CMAKE_CONFIGS all_configs_count)
+    list(GET arg_ALL_CMAKE_CONFIGS 0 first_config)
+
+    set(suffix "")
+    if(all_configs_count GREATER 1 AND NOT arg_CMAKE_CONFIG STREQUAL first_config)
+        set(suffix "/${arg_CMAKE_CONFIG}")
+    endif()
+
+    set(runtime "${INSTALL_BINDIR}")
+    if(arg_RUNTIME)
+        set(runtime "${arg_RUNTIME}")
+    endif()
+
+    set(library "${INSTALL_LIBDIR}")
+    if(arg_LIBRARY)
+        set(library "${arg_LIBRARY}")
+    endif()
+
+    set(archive "${INSTALL_LIBDIR}")
+    if(arg_ARCHIVE)
+        set(archive "${arg_ARCHIVE}")
+    endif()
+
+    set(includes "${INSTALL_INCLUDEDIR}")
+    if(arg_INCLUDES)
+        set(includes "${arg_INCLUDES}")
+    endif()
+
+    set(bundle "${INSTALL_BINDIR}")
+    if(arg_BUNDLE)
+        set(bundle "${arg_BUNDLE}")
+    endif()
+
+    set(args
+        RUNTIME DESTINATION "${runtime}${suffix}"
+        LIBRARY DESTINATION "${library}${suffix}"
+        ARCHIVE DESTINATION "${archive}${suffix}" COMPONENT Devel
+        BUNDLE DESTINATION "${bundle}${suffix}"
+        INCLUDES DESTINATION "${includes}${suffix}")
+    set(${arg_OUT_VAR} "${args}" PARENT_SCOPE)
+endfunction()

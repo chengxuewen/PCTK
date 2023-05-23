@@ -31,7 +31,7 @@ function(pctk_build_doxygen)
     find_package(Doxygen)
     if(DOXYGEN_FOUND)
         # set input and output files
-        set(DOXYGEN_IN ../pctk_core/doc/Doxyfile.in)
+        set(DOXYGEN_IN ../src/libs/core/doc/Doxyfile.in)
         set(DOXYGEN_OUT ${PROJECT_BINARY_DIR}/doc/Doxyfile)
 
         # request to configure the file

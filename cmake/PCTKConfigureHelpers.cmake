@@ -318,7 +318,7 @@ function(pctk_configure_module_end)
             endforeach()
         endforeach()
 
-        pctk_configure_feature_copy_global_config_features_to_core(${target})
+#        pctk_configure_feature_copy_global_config_features_to_core(${target}) ###TODO:del
     endif()
 
     pctk_configure_feature_unset_state_vars()
@@ -514,34 +514,34 @@ macro(pctk_configure_feature_unset_state_vars)
     unset(__pctk_configure_only_evaluate_features PARENT_SCOPE)
 endmacro()
 
-
+###TODO:del
 #-----------------------------------------------------------------------------------------------------------------------
 # pctk_configure_feature_copy_global_config_features_to_core finction
 #-----------------------------------------------------------------------------------------------------------------------
-function(pctk_configure_feature_copy_global_config_features_to_core target)
-    # CMake doesn't support setting custom properties on exported INTERFACE libraries
-    # See https://gitlab.kitware.com/cmake/cmake/issues/19261.
-    # To circumvent that, copy the properties from GlobalConfig to Core target.
-    # This way the global features actually get set in the generated CoreTargets.cmake file.
-    if(target STREQUAL Core)
-        foreach(visibility public private)
-            string(TOUPPER "${visibility}" capital_visibility)
-            foreach(state enabled disabled)
-                string(TOUPPER "${state}" capitalState)
-
-                set(core_property_name "PCTK_${capitalState}_${capital_visibility}_FEATURES")
-                set(global_property_name "INTERFACE_${core_property_name}")
-
-                get_property(core_values TARGET Core PROPERTY ${core_property_name})
-                get_property(global_values TARGET GlobalConfig PROPERTY ${global_property_name})
-
-                set(total_values ${core_values} ${global_values})
-                set_property(TARGET Core PROPERTY ${core_property_name} ${total_values})
-            endforeach()
-        endforeach()
-    endif()
-endfunction()
-
+#function(pctk_configure_feature_copy_global_config_features_to_core target)
+#    # CMake doesn't support setting custom properties on exported INTERFACE libraries
+#    # See https://gitlab.kitware.com/cmake/cmake/issues/19261.
+#    # To circumvent that, copy the properties from GlobalConfig to Core target.
+#    # This way the global features actually get set in the generated CoreTargets.cmake file.
+#    if(target STREQUAL Core)
+#        foreach(visibility public private)
+#            string(TOUPPER "${visibility}" capital_visibility)
+#            foreach(state enabled disabled)
+#                string(TOUPPER "${state}" capitalState)
+#
+#                set(core_property_name "PCTK_${capitalState}_${capital_visibility}_FEATURES")
+#                set(global_property_name "INTERFACE_${core_property_name}")
+#
+#                get_property(core_values TARGET Core PROPERTY ${core_property_name})
+#                get_property(global_values TARGET GlobalConfig PROPERTY ${global_property_name})
+#
+#                set(total_values ${core_values} ${global_values})
+#                set_property(TARGET Core PROPERTY ${core_property_name} ${total_values})
+#            endforeach()
+#        endforeach()
+#    endif()
+#endfunction()
+#
 
 #-----------------------------------------------------------------------------------------------------------------------
 # pctk_configure_compile_test_type finction

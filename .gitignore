@@ -126,6 +126,7 @@ Testing
 *.vscode
 *.cache
 *.idea/
+cmake-build*
 
 # dont ignore folder and files
 !install/

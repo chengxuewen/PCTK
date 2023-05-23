@@ -43,6 +43,7 @@ macro(pctk_ensure_define_variable NAME VALUE)
 endmacro()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Normalize the feature name to something CMake can deal with.
 # Usage:
 #   pctk_normalize_name(<name> <output variable>)
@@ -52,6 +53,7 @@ endmacro()
 #   pctk_normalize_name("," out_var) # out_var = _
 #   pctk_normalize_name("=" out_var) # out_var = _
 #   pctk_normalize_name("hello world!" out_var) # out_var = hello_world_
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_normalize_name name out_var)
     if(name MATCHES "c\\+\\+")
         string(REGEX REPLACE "[^a-zA-Z0-9_]" "x" name "${name}")
@@ -63,6 +65,7 @@ function(pctk_normalize_name name out_var)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Evaluate expression_var to boolean value
 # Usage:
 #   pctk_evaluate_to_boolean(<expression_var>)
@@ -73,6 +76,7 @@ endfunction()
 #   pctk_evaluate_to_boolean(test_var) # test_var = ON
 #   set(test_val "no")
 #   pctk_evaluate_to_boolean(test_var) # test_var = OFF
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_evaluate_to_boolean expression_var)
     if(${${expression_var}})
         set(${expression_var} ON PARENT_SCOPE)
@@ -134,6 +138,9 @@ function(pctk_evaluate_expression result_var)
             elseif("${member}" STREQUAL "NOT")
                 list(APPEND result ${member})
                 continue()
+            elseif("${member}" STREQUAL "TARGET")
+                list(APPEND result ${member})
+                continue()
             elseif("${member}" STREQUAL "AND")
                 pctk_evaluate_to_boolean(result)
                 if(NOT ${result})
@@ -187,13 +194,15 @@ function(pctk_evaluate_expression result_var)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # pctk_configure_file(OUTPUT output-file <INPUT input-file | CONTENT content>)
 # input-file is relative to ${CMAKE_CURRENT_SOURCE_DIR}
 # output-file is relative to ${CMAKE_CURRENT_BINARY_DIR}
 #
-# This function is similar to file(GENERATE OUTPUT) except it writes the content
-# to the file at configure time, rather than at generate time. Once CMake 3.18 is released, it can use file(CONFIGURE) in its implmenetation. Until then, it
+# This function is similar to file(GENERATE OUTPUT) except it writes the content to the file at configure time, rather
+# than at generate time. Once CMake 3.18 is released, it can use file(CONFIGURE) in its implmenetation. Until then, it
 # uses configure_file() with a generic input file as source, when used with the CONTENT signature.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_configure_file)
     pctk_parse_all_arguments(arg "pctk_configure_file" "" "OUTPUT;INPUT;CONTENT" "" ${ARGN})
 
@@ -215,10 +224,12 @@ function(pctk_configure_file)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # A version of cmake_parse_arguments that makes sure all arguments are processed and errors out
 # with a message about ${type} having received unknown arguments.
 #
 # pctk_parse_all_arguments(arg "test_func" "" "OUTPUT;INPUT;CONTENT" "" ${ARGN})
+#-----------------------------------------------------------------------------------------------------------------------
 macro(pctk_parse_all_arguments result type flags options multiopts)
     cmake_parse_arguments(${result} "${flags}" "${options}" "${multiopts}" ${ARGN})
 
@@ -228,7 +239,9 @@ macro(pctk_parse_all_arguments result type flags options multiopts)
 endmacro()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Print all variables defined in the current scope.
+#-----------------------------------------------------------------------------------------------------------------------
 macro(pctk_debug_print_variables)
     cmake_parse_arguments(__arg "DEDUP" "" "MATCH;IGNORE" ${ARGN})
     message("Known Variables:")
@@ -269,6 +282,8 @@ macro(pctk_debug_print_variables)
 endmacro()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 macro(assert)
     if(${ARGN})
     else()
@@ -277,14 +292,17 @@ macro(assert)
 endmacro()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Takes a list of path components and joins them into one path separated by forward slashes "/",
 # and saves the path in out_var.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_path_join out_var)
     string(JOIN "/" path ${ARGN})
     set(${out_var} ${path} PARENT_SCOPE)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # pctk_remove_args can remove arguments from an existing list of function
 # arguments in order to pass a filtered list of arguments to a different function.
 # Parameters:
@@ -314,6 +332,7 @@ endfunction()
 # bar(${target} ${forward_args})
 # endfunction()
 #
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_remove_args out_var)
     cmake_parse_arguments(arg "" "" "ARGS_TO_REMOVE;ALL_ARGS;ARGS" ${ARGN})
     set(result ${arg_ARGS})
@@ -344,15 +363,19 @@ function(pctk_remove_args out_var)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Creates a regular expression that exactly matches the given string
 # Found in https://gitlab.kitware.com/cmake/cmake/issues/18580
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_re_escape out_var str)
     string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" regex "${str}")
     set(${out_var} ${regex} PARENT_SCOPE)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Gets a target property, and returns "" if the property was not found
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_get_target_property out_var target property)
     get_target_property(result "${target}" "${property}")
 
@@ -364,13 +387,15 @@ function(pctk_internal_get_target_property out_var target property)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Creates a wrapper ConfigVersion.cmake file to be loaded by find_package when checking for
 # compatible versions. It expects a ConfigVersionImpl.cmake file in the same directory which will
 # be included to do the regular version checks.
 # The version check result might be overridden by the wrapper.
 # package_name is used by the content of the wrapper file to include the basic package version file.
-#   example: PCTK6Gui
+#   example: PCTK1Gui
 # out_path should be the build path where the write the file.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_write_pctk_package_version_file package_name out_path)
     set(extra_code "")
 

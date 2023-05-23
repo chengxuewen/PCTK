@@ -20,7 +20,7 @@ function(pctk_register_target_dependencies target public_libs private_libs)
         set(target_is_static TRUE)
     endif()
 
-    # Record 'pctk::Foo'-like private dependencies of static library targets, this will be used to
+    # Record 'PCTK::Foo'-like private dependencies of static library targets, this will be used to
     # generate find_dependency() calls.
     #
     # Private static library dependencies will become $<LINK_ONLY:> dependencies in
@@ -30,7 +30,7 @@ function(pctk_register_target_dependencies target public_libs private_libs)
     endif()
 
     foreach(lib IN LISTS lib_list)
-        if("${lib}" MATCHES "^pctk::(.*)")
+        if("${lib}" MATCHES "^PCTK::(.*)")
             set(lib "${CMAKE_MATCH_1}")
             pctk_internal_get_package_name_of_target("${lib}" package_name)
             pctk_internal_get_package_version_of_target("${lib}" package_version)
@@ -38,7 +38,7 @@ function(pctk_register_target_dependencies target public_libs private_libs)
         endif()
     endforeach()
 
-    # Record 'pctk::Foo'-like shared private dependencies of shared library targets.
+    # Record 'PCTK::Foo'-like shared private dependencies of shared library targets.
     #
     # Private shared library dependencies are listed in the target's
     # IMPORTED_LINK_DEPENDENT_LIBRARIES and used in rpath-link calculation.
@@ -46,8 +46,7 @@ function(pctk_register_target_dependencies target public_libs private_libs)
     # INTERFACE libraries. INTERFACE libraries in most cases will be FooPrivate libraries.
     if(target_is_shared AND private_libs)
         foreach(lib IN LISTS private_libs)
-            message(lib=${lib})
-            if("${lib}" MATCHES "^pctk::(.*)")
+            if("${lib}" MATCHES "^PCTK::(.*)")
                 set(lib_namespaced "${lib}")
                 set(lib "${CMAKE_MATCH_1}")
 
@@ -78,14 +77,14 @@ function(pctk_internal_get_package_name_of_target target package_name_out_var)
     set(package_name "")
     set(package_name_default "${INSTALL_CMAKE_NAMESPACE}${target}")
     set(target_namespaced "${PCTK_CMAKE_EXPORT_NAMESPACE}::${target}")
-    message(target_namespaced=${target_namespaced})
+#    message(target_namespaced=${target_namespaced})
     if(TARGET "${target_namespaced}")
         get_target_property(package_name_from_prop "${target_namespaced}" _pctk_package_name)
         if(package_name_from_prop)
             set(package_name "${package_name_from_prop}")
         endif()
     endif()
-    message(package_name=${package_name})
+#    message(package_name=${package_name})
     if(NOT package_name)
         message(WARNING
             "Could not find target ${target_namespaced} to query its package name. "
@@ -102,7 +101,7 @@ endfunction()
 # Try to get the CMake package version of a PCTK target.
 #
 # Query the target's _pctk_package_version property, or try to read it from the CMake package version
-# variable set from calling find_package(PCTK6${target}).
+# variable set from calling find_package(PCTK${target}).
 # Not all targets will have a find_package _VERSION variable, for example if the target is an
 # executable.
 # A heuristic is used to handle PCTKFooPrivate module targets.
