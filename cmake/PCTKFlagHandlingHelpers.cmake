@@ -51,16 +51,21 @@
 
 
 function(pctk_set_language_standards target)
-    set(${target}_CXX_STANDARD 98 CACHE STRING "${target} CXX standard.")
-    ## Use the latest standard the compiler supports (same as pctk_common.prf)
-    #    if(PCTK_FEATURE_CXX20)
-    #        set(CMAKE_CXX_STANDARD 20 PARENT_SCOPE)
-    #    else()
-    #        set(CMAKE_CXX_STANDARD 17 PARENT_SCOPE)
-    #    endif()
-    #
-    #    set(CMAKE_C_STANDARD 11 PARENT_SCOPE)
-    #    set(CMAKE_C_STANDARD_REQUIRED ON PARENT_SCOPE)
+    if(PCTK_FEATURE_CXX20)
+        set(CMAKE_CXX_STANDARD 20 PARENT_SCOPE)
+    elseif(PCTK_FEATURE_CXX17)
+        set(CMAKE_CXX_STANDARD 17 PARENT_SCOPE)
+    elseif(PCTK_FEATURE_CXX14)
+        set(CMAKE_CXX_STANDARD 14 PARENT_SCOPE)
+    elseif(PCTK_FEATURE_CXX11)
+        set(CMAKE_CXX_STANDARD 11 PARENT_SCOPE)
+    else()
+        set(CMAKE_CXX_STANDARD 98 PARENT_SCOPE)
+    endif()
+    set(${target}_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "${target} CXX standard.")
+
+    set(CMAKE_C_STANDARD 99 PARENT_SCOPE)
+    set(CMAKE_C_STANDARD_REQUIRED ON PARENT_SCOPE)
 endfunction()
 
 
@@ -70,6 +75,17 @@ function(pctk_skip_warnings_are_errors_when_repo_unclean target)
     if(PCTK_REPO_NOT_WARNINGS_CLEAN)
         pctk_skip_warnings_are_errors("${target}")
     endif()
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_skip_warnings_are_errors target)
+    get_target_property(target_type "${target}" TYPE)
+    if(target_type STREQUAL "INTERFACE_LIBRARY")
+        return()
+    endif()
+    set_target_properties("${target}" PROPERTIES PCTK_SKIP_WARNINGS_ARE_ERRORS ON)
 endfunction()
 
 
@@ -182,6 +198,7 @@ endfunction()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
+####TODO::del
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_add_linker_version_script target)
     pctk_parse_all_arguments(arg "pctk_internal_add_linker" "" "" "PRIVATE_HEADERS" ${ARGN})

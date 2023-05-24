@@ -106,7 +106,7 @@ function(__pctk_internal_walk_libs target out_var rcc_objects_out_var dict_name 
             endif()
 
             # Strip any directory scope tokens.
-            __pctk_internal_strip_target_directory_scope_token("${lib}" lib)
+            pctk_internal_strip_target_directory_scope_token("${lib}" lib)
 
             if(lib MATCHES "^\\$<TARGET_OBJECTS:")
                 # Skip object files.

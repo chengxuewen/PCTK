@@ -8,7 +8,7 @@
 #    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/PCTKCore>
 #    $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
 #    $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}/PCTKCore>)
-#pctk_configure_module_begin(NO_MODULE
+#pctk_configure_library_begin(NO_MODULE
 #    PUBLIC_FILE PCTKCore/global/config.h
 #    PRIVATE_FILE PCTKCore/global/config_p.h)
 #include("${CMAKE_CURRENT_SOURCE_DIR}/configure.cmake")

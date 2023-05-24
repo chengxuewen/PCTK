@@ -53,7 +53,7 @@ function(pctk_internal_setup_public_platform_target)
     # By default enable unicode on WIN32 platforms for both PCTK and PCTK consumers. Can be opted out.
     pctk_internal_enable_unicode_defines(platform)
 
-    # Generate a pkgconfig for utk_platform.
+    # Generate a pkgconfig for pctk_platform.
     pctk_internal_generate_pkg_config_file(platform) ###TODO
 endfunction()
 

@@ -33,29 +33,31 @@ include(CheckIncludeFile)
 include(CheckTypeSize)
 
 #-----------------------------------------------------------------------------------------------------------------------
-# pctk_configure_module_begin finction
+# pctk_configure_library_begin finction
 #-----------------------------------------------------------------------------------------------------------------------
-function(pctk_configure_module_begin)
+function(pctk_configure_library_begin)
     pctk_parse_all_arguments(arg
-        "pctk_configure_module_begin"
+        "pctk_configure_library_begin"
         "NO_MODULE;ONLY_EVALUATE_CONFIG"
         "LIBRARY;PRIVATE_FILE;PUBLIC_FILE"
         "PUBLIC_DEPENDENCIES;PRIVATE_DEPENDENCIES" ${ARGN})
 
     if(NOT arg_ONLY_EVALUATE_CONFIG)
         if("${arg_LIBRARY}" STREQUAL "" AND (NOT ${arg_NO_MODULE}))
-            message(FATAL_ERROR "pctk_configure_module_begin needs a LIBRARY name! (or specify NO_MODULE)")
+            message(FATAL_ERROR "pctk_configure_library_begin needs a LIBRARY name! (or specify NO_MODULE)")
         endif()
         if("${arg_PUBLIC_FILE}" STREQUAL "")
-            message(FATAL_ERROR "pctk_configure_module_begin needs a PUBLIC_FILE name!")
+            message(FATAL_ERROR "pctk_configure_library_begin needs a PUBLIC_FILE name!")
         endif()
         if("${arg_PRIVATE_FILE}" STREQUAL "")
-            message(FATAL_ERROR "pctk_configure_module_begin needs a PRIVATE_FILE name!")
+            message(FATAL_ERROR "pctk_configure_library_begin needs a PRIVATE_FILE name!")
         endif()
         set(__pctk_configure_only_evaluate_features OFF PARENT_SCOPE)
     else()
         set(__pctk_configure_only_evaluate_features ON PARENT_SCOPE)
     endif()
+
+    set(__pctk_configure_library "${arg_LIBRARY}" PARENT_SCOPE)
 
     set(__pctk_configure_public_file "${arg_PUBLIC_FILE}" PARENT_SCOPE)
     set(__pctk_configure_private_file "${arg_PRIVATE_FILE}" PARENT_SCOPE)
@@ -227,9 +229,9 @@ endfunction()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-# pctk_configure_module_end finction
+# pctk_configure_library_end finction
 #-----------------------------------------------------------------------------------------------------------------------
-function(pctk_configure_module_end)
+function(pctk_configure_library_end)
     set(flags ONLY_EVALUATE_FEATURES)
     set(options OUT_VAR_PREFIX)
     set(multiopts)
@@ -242,7 +244,10 @@ function(pctk_configure_module_end)
         set(arg_OUT_VAR_PREFIX "")
     endif()
 
-    set(all_features ${__pctk_configure_public_features} ${__pctk_configure_private_features} ${__pctk_configure_internal_features})
+    set(all_features
+        ${__pctk_configure_public_features}
+        ${__pctk_configure_private_features}
+        ${__pctk_configure_internal_features})
     list(REMOVE_DUPLICATES all_features)
 
     foreach(feature ${all_features})
@@ -300,6 +305,20 @@ function(pctk_configure_module_end)
             "${__pctk_configure_private_features}" "${__pctk_configure_private_definitions}")
     endif()
 
+    # Extra header injections which have to have forwarding headers created by pctk_install_injections.
+    # Skip creating forwarding headers if pctk_configure_library_begin was called with NO_MODULE, aka
+    # there is no include/<module_name> so there's no place to put the forwarding headers.
+    if(__pctk_configure_library)
+        set(injections "")
+        pctk_compute_injection_forwarding_header("${__pctk_configure_library}"
+            SOURCE "${__pctk_configure_public_file}"
+            OUT_VAR injections)
+        pctk_compute_injection_forwarding_header("${__pctk_configure_library}"
+            SOURCE "${__pctk_configure_private_file}" PRIVATE
+            OUT_VAR injections)
+
+        set(${arg_OUT_VAR_PREFIX}extra_library_injections ${injections} PARENT_SCOPE)
+    endif()
 
     if(NOT ("${target}" STREQUAL "NO_MODULE") AND NOT arg_ONLY_EVALUATE_FEATURES)
         get_target_property(target_type "${target}" TYPE)
@@ -314,11 +333,10 @@ function(pctk_configure_module_end)
             string(TOUPPER "${visibility}" capital_visibility)
             foreach(state enabled disabled)
                 string(TOUPPER "${state}" capitalState)
-                set_property(TARGET "${target}" PROPERTY ${property_prefix}PCTK_${capitalState}_${capital_visibility}_FEATURES "${${state}_${visibility}_features}")
+                set_property(TARGET "${target}" PROPERTY
+                    ${property_prefix}PCTK_${capitalState}_${capital_visibility}_FEATURES "${${state}_${visibility}_features}")
             endforeach()
         endforeach()
-
-#        pctk_configure_feature_copy_global_config_features_to_core(${target}) ###TODO:del
     endif()
 
     pctk_configure_feature_unset_state_vars()
@@ -498,6 +516,8 @@ endfunction()
 # pctk_configure_feature_unset_state_vars finction
 #-----------------------------------------------------------------------------------------------------------------------
 macro(pctk_configure_feature_unset_state_vars)
+    unset(__pctk_configure_library PARENT_SCOPE)
+
     unset(__pctk_configure_public_file PARENT_SCOPE)
     unset(__pctk_configure_private_file PARENT_SCOPE)
 

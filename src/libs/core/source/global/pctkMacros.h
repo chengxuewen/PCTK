@@ -1,28 +1,24 @@
 /***********************************************************************************************************************
 **
-** Library: PCTK
+** Library: UTK
 **
 ** Copyright (C) 2023 ChengXueWen. Contact: 1398831004@qq.com
 **
 ** License: MIT License
 **
-** Permission is hereby granted, free of charge, to any person obtaining
-** a copy of this software and associated documentation files (the "Software"),
-** to deal in the Software without restriction, including without limitation
-** the rights to use, copy, modify, merge, publish, distribute, sublicense,
-** and/or sell copies of the Software, and to permit persons to whom the
-** Software is furnished to do so, subject to the following conditions:
+** Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+** documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+** the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+** and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 **
-** The above copyright notice and this permission notice shall be included in
-** all copies or substantial portions of the Software.
+** The above copyright notice and this permission notice shall be included in all copies or substantial portions
+** of the Software.
 **
-** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-** SOFTWARE.
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+** TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+** THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+** CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+** IN THE SOFTWARE.
 **
 ***********************************************************************************************************************/
 
@@ -38,10 +34,180 @@
 
 
 /***********************************************************************************************************************
+   PCTK struct member macro
+***********************************************************************************************************************/
+#if PCTK_CC_GNU >= 400 || defined(PCTK_CC_MSVC)
+#   define PCTK_STRUCT_OFFSET(struct_type, member)   ((pctk_long_t)offsetof(struct_type, member))
+#else
+#   define PCTK_STRUCT_OFFSET(struct_type, member)   ((pctk_long_t)((pctk_uint8_t *)&((struct_type *) 0)->member))
+#endif
+
+#define PCTK_STRUCT_MEMBER_P(struct_p, struct_offset) \
+    ((pctk_pointer_t)((pctk_uint8_t *)(struct_p) + (pctk_long_t)(struct_offset)))
+#define PCTK_STRUCT_MEMBER(member_type, struct_p, struct_offset) \
+    (*(member_type*)PCTK_STRUCT_MEMBER_P((struct_p), (struct_offset)))
+
+
+/********************************************************************************
+   PCTK namespace macro
+********************************************************************************/
+#define PCTK_NAMESPACE pctk
+#define PCTK_PREPEND_NAMESPACE(name) ::PCTK_NAMESPACE::name
+#define PCTK_USE_NAMESPACE using namespace ::PCTK_NAMESPACE;
+#define PCTK_BEGIN_NAMESPACE namespace PCTK_NAMESPACE {
+#define PCTK_END_NAMESPACE }
+#define PCTK_BEGIN_INCLUDE_NAMESPACE }
+#define PCTK_END_INCLUDE_NAMESPACE namespace PCTK_NAMESPACE {
+#define PCTK_FORWARD_DECLARE_CLASS(name) \
+    PCTK_BEGIN_NAMESPACE class name; PCTK_END_NAMESPACE \
+    using PCTK_PREPEND_NAMESPACE(name);
+
+#define PCTK_FORWARD_DECLARE_STRUCT(name) \
+    PCTK_BEGIN_NAMESPACE struct name; PCTK_END_NAMESPACE \
+    using PCTK_PREPEND_NAMESPACE(name);
+
+#define PCTK_MANGLE_NAMESPACE0(x) x
+#define PCTK_MANGLE_NAMESPACE1(a, b) a##_##b
+#define PCTK_MANGLE_NAMESPACE2(a, b) PCTK_MANGLE_NAMESPACE1(a,b)
+#define PCTK_MANGLE_NAMESPACE(name) PCTK_MANGLE_NAMESPACE2( \
+    PCTK_MANGLE_NAMESPACE0(name), PCTK_MANGLE_NAMESPACE0(PCTK_NAMESPACE))
+
+namespace PCTK_NAMESPACE {}
+
+
+
+/********************************************************************************
+    PCTK compiler CXX11 feature macro declare
+********************************************************************************/
+#if PCTK_CC_FEATURE_NULLPTR
+#   define PCTK_NULLPTR nullptr
+#else
+#   define PCTK_NULLPTR NULL
+#endif
+
+#if PCTK_CC_FEATURE_CONSTEXPR
+#   define PCTK_CONSTEXPR constexpr
+#   define PCTK_RELAXED_CONSTEXPR constexpr
+#else
+#   define PCTK_CONSTEXPR
+#   define PCTK_RELAXED_CONSTEXPR const
+#endif
+
+#if PCTK_CC_FEATURE_EXPLICIT_OVERRIDES
+#   define PCTK_OVERRIDE override
+#   define PCTK_FINAL final
+#else
+#   define PCTK_OVERRIDE
+#   define PCTK_FINAL
+#endif
+
+#if PCTK_CC_FEATURE_NOEXCEPT
+#   define PCTK_NOEXCEPT noexcept
+#   define PCTK_NOEXCEPT_EXPR(x) noexcept(x)
+#else
+#   define PCTK_NOEXCEPT
+#   define PCTK_NOEXCEPT_EXPR(x)
+#endif
+#define PCTK_NOTHROW PCTK_NOEXCEPT
+
+#if PCTK_CC_FEATURE_DEFAULT_MEMBERS
+#   define PCTK_EQ_DEFAULT = default
+#   define PCTK_EQ_DEFAULT_FUNC = default;
+#else
+#   define PCTK_EQ_DEFAULT
+#   define PCTK_EQ_DEFAULT_FUNC {}
+#endif
+
+#if PCTK_CC_FEATURE_DELETE_MEMBERS
+#   define PCTK_EQ_DELETE = delete
+#   define PCTK_EQ_DELETE_FUNC = delete;
+#else
+#   define PCTK_EQ_DELETE
+#   define PCTK_EQ_DELETE_FUNC {}
+#endif
+
+#if PCTK_CC_FEATURE_ALIGNOF
+#   define PCTK_ALIGNOF(type) alignof(type)
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#   define PCTK_ALIGNOF(type)  _Alignof(type)
+#elif defined(_MSC_VER)
+#   define PCTK_ALIGNOF(type)  __alignof(type)
+#elif !defined(__GNUC__)
+#   define PCTK_ALIGNOF(type)  __alignof__(type)
+#elif defined(__xlC__) && __xlC__ >= 0x0600
+#   define UTK_C_ALIGNOF(type)  __alignof__(type)
+#elif (defined(__SUNPRO_CC) || defined(__SUNPRO_C)) && __SUNPRO_CC >= 0x590
+#   define UTK_C_ALIGNOF(type)  __alignof__(type)
+#else
+PCTK_BEGIN_NAMESPACE template<typename T>
+struct AlignmentDummy { char header; T data; }; PCTK_END_NAMESPACE
+#   define PCTK_ALIGNOF(type) (PCTK_STRUCT_OFFSET(pctk::AlignmentDummy<type>, data))
+#endif
+
+#if PCTK_CC_FEATURE_ALIGNAS
+#   define PCTK_ALIGN(n)   alignas(n)
+#else
+#   define PCTK_ALIGN(n)
+#endif
+
+
+/***********************************************************************************************************************
+    PCTK disable copy move macro declare
+***********************************************************************************************************************/
+// disable copy macro define
+#define PCTK_DISABLE_COPY(class_name) \
+    class_name(const class_name &) PCTK_EQ_DELETE; \
+    class_name &operator=(const class_name &) PCTK_EQ_DELETE;
+
+// disable move macro define
+#if PCTK_CC_FEATURE_RVALUE_REFS
+#   define PCTK_DISABLE_MOVE(class_name) \
+    class_name(class_name &&) PCTK_EQ_DELETE; \
+    class_name &operator=(class_name &&) PCTK_EQ_DELETE;
+#else
+#   define PCTK_DISABLE_MOVE(class_name)
+#endif
+
+// disable copy move macro define
+#define PCTK_DISABLE_COPY_MOVE(class_name) \
+    PCTK_DISABLE_COPY(class_name) \
+    PCTK_DISABLE_MOVE(class_name)
+
+/***********************************************************************************************************************
+   PCTK class private implementation macro
+***********************************************************************************************************************/
+template<typename T>
+static inline T *pctk_get_ptr_helper(T *ptr) { return ptr; }
+template<typename Wrapper>
+static inline typename Wrapper::Pointer pctk_get_ptr_helper(const Wrapper &p) { return p.get(); }
+template<typename Wrapper>
+static inline typename Wrapper::pointer pctk_get_ptr_helper(const Wrapper &p) { return p.get(); }
+
+#define PCTK_DECL_PRIVATE(class_name) \
+inline class_name##Private *d_func() { return reinterpret_cast<class_name##Private *>(pctk_get_ptr_helper(d_ptr)); } \
+    inline const class_name##Private *d_func() const { return reinterpret_cast<const class_name##Private *>(pctk_get_ptr_helper(d_ptr)); } \
+    friend class class_name##Private;
+
+#define PCTK_DECL_PRIVATE_D(dd_ptr, class_name) \
+inline class_name##Private *d_func() { return reinterpret_cast<class_name##Private *>(pctk_get_ptr_helper(dd_ptr)); } \
+    inline const class_name##Private *d_func() const { return reinterpret_cast<const class_name##Private *>(pctk_get_ptr_helper(dd_ptr)); } \
+    friend class class_name##Private;
+
+#define PCTK_DECL_PUBLIC(class_name) \
+inline class_name *q_func() { return reinterpret_cast<class_name *>(q_ptr); } \
+    inline const class_name *q_func() const { return reinterpret_cast<const class_name *>(q_ptr); } \
+    friend class class_name;
+
+#define PCTK_D(class_name) class_name##Private *const d = d_func()
+#define PCTK_Q(class_name) class_name *const q = q_func()
+
+
+
+/***********************************************************************************************************************
    PCTK utils macro
 ***********************************************************************************************************************/
 /* Avoid "unused parameter" warnings */
-#define PCTK_VAR_UNUSED(x) (void)x;
+#define PCTK_UNUSED(x) (void)x;
 
 /* Pragma keyword */
 #if defined(_MSC_VER)
@@ -64,21 +230,6 @@
 
 #define PCTK_ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
-
-
-/***********************************************************************************************************************
-   PCTK struct member macro
-***********************************************************************************************************************/
-#if PCTK_CC_GNU >= 400 || defined(PCTK_CC_MSVC)
-#   define PCTK_STRUCT_OFFSET(struct_type, member)   ((utk_long_t)offsetof(struct_type, member))
-#else
-#   define PCTK_STRUCT_OFFSET(struct_type, member)   ((utk_long_t)((utk_uint8_t *)&((struct_type *) 0)->member))
-#endif
-
-#define PCTK_STRUCT_MEMBER_P(struct_p, struct_offset) \
-    ((utk_pointer_t)((utk_uint8_t *)(struct_p) + (utk_long_t)(struct_offset)))
-#define PCTK_STRUCT_MEMBER(member_type, struct_p, struct_offset) \
-    (*(member_type*)PCTK_STRUCT_MEMBER_P((struct_p), (struct_offset)))
 
 
 
@@ -151,7 +302,6 @@
 #define PCTK_VA_START(ap, x)         va_start(ap, x)
 #define PCTK_VA_ARG(ap, t)           va_arg(ap, t)
 #define PCTK_VA_END(ap)              va_end(ap)
-
 
 
 
@@ -410,10 +560,10 @@
 #       define PCTK_C_STATIC_ASSERT(expr) _Static_assert(expr, #expr)
 #       define PCTK_C_STATIC_ASSERT_X(expr, msg) _Static_assert(expr, #msg)
 #   elif defined(__COUNTER__)
-#       define PCTK_C_STATIC_ASSERT(expr) typedef char PCTK_PP_CONCAT(_utk_static_assert_compile_time_assertion_, __COUNTER__)[(expr) ? 1 : -1] PCTK_ATTR_UNUSED
+#       define PCTK_C_STATIC_ASSERT(expr) typedef char PCTK_PP_CONCAT(_pctk_static_assert_compile_time_assertion_, __COUNTER__)[(expr) ? 1 : -1] PCTK_ATTR_UNUSED
 #       define PCTK_C_STATIC_ASSERT_X(expr, msg) typedef char PCTK_PP_CONCAT(msg, __COUNTER__)[(expr) ? 1 : -1] PCTK_ATTR_UNUSED
 #   else
-#       define PCTK_C_STATIC_ASSERT(expr) typedef char PCTK_PP_CONCAT(_utk_static_assert_compile_time_assertion_, __LINE__)[(expr) ? 1 : -1] PCTK_ATTR_UNUSED
+#       define PCTK_C_STATIC_ASSERT(expr) typedef char PCTK_PP_CONCAT(_pctk_static_assert_compile_time_assertion_, __LINE__)[(expr) ? 1 : -1] PCTK_ATTR_UNUSED
 #       define PCTK_C_STATIC_ASSERT_X(expr, msg) typedef char PCTK_PP_CONCAT(msg, __LINE__)[(expr) ? 1 : -1] PCTK_ATTR_UNUSED
 #   endif /* __STDC_VERSION__ */
 #   define PCTK_C_STATIC_ASSERT_EXPR(expr) ((void) sizeof(char[(expr) ? 1 : -1]))
@@ -558,7 +708,7 @@
  * Place the attribute after the declaration, just before the semicolon.
  *
  * |[<!-- language="C" -->
- * utk_boolean_t utk_type_check_value (const Value *value) PCTK_ATTR_PURE;
+ * pctk_boolean_t pctk_type_check_value (const Value *value) PCTK_ATTR_PURE;
  * ]|
  *
  */
@@ -594,7 +744,7 @@
  * Place the attribute after the declaration, just before the semicolon.
  *
  * |[<!-- language="C" -->
- * utk_pointer_t utk_allocater_malloc(utk_size_t n_bytes) PCTK_ATTR_MALLOC PCTK_ATTR_ALLOC_SIZE(1);
+ * pctk_pointer_t pctk_allocater_malloc(pctk_size_t n_bytes) PCTK_ATTR_MALLOC PCTK_ATTR_ALLOC_SIZE(1);
  * ]|
  *
  * See the
@@ -624,7 +774,7 @@
  * Place the attribute after the declaration, just before the semicolon.
  *
  * |[<!-- language="C" -->
- * utk_char_t *utk_strconcat (const utk_char_t *string1, ...) PCTK_ATTR_NULL_TERMINATED;
+ * pctk_char_t *pctk_strconcat (const pctk_char_t *string1, ...) PCTK_ATTR_NULL_TERMINATED;
  * ]|
  *
  * See the [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-sentinel-function-attribute) for more details.
@@ -652,7 +802,7 @@
  * semicolon.
  *
  * |[<!-- language="C" -->
- * utk_pointer_t utk_malloc (utk_size_t n_bytes) PCTK_ATTR_MALLOC PCTK_ATTR_ALLOC_SIZE(1);
+ * pctk_pointer_t pctk_malloc (pctk_size_t n_bytes) PCTK_ATTR_MALLOC PCTK_ATTR_ALLOC_SIZE(1);
  * ]|
  *
  * See the [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-alloc_005fsize-function-attribute) for more details.
@@ -681,7 +831,7 @@
  * semicolon.
  *
  * |[<!-- language="C" -->
- * utk_pointer_t utk_malloc_n (utk_size_t n_blocks, utk_size_t n_block_bytes) PCTK_ATTR_MALLOC PCTK_ATTR_ALLOC_SIZE2(1, 2);
+ * pctk_pointer_t pctk_malloc_n (pctk_size_t n_blocks, pctk_size_t n_block_bytes) PCTK_ATTR_MALLOC PCTK_ATTR_ALLOC_SIZE2(1, 2);
  * ]|
  *
  * See the [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-alloc_005fsize-function-attribute) for more details.
@@ -716,9 +866,9 @@
  * for more details.
  *
  * |[<!-- language="C" -->
- * utk_int_t utk_snprintf (utk_char_t  *string,
- *                          utk_ulong_t       n,
- *                          utk_char_t const *format,
+ * pctk_int_t pctk_snprintf (pctk_char_t  *string,
+ *                          pctk_ulong_t       n,
+ *                          pctk_char_t const *format,
  *                          ...) PCTK_ATTR_PRINTF(3, 4);
  * ]|
  */
@@ -780,7 +930,7 @@
  * the compiler check the format passed to the function.
  *
  * |[<!-- language="C" -->
- * utk_size_t my_strftime (MyBuffer *buffer,
+ * pctk_size_t my_strftime (MyBuffer *buffer,
  *                    const char *format,
  *                    const struct tm *tm) PCTK_ATTR_STRFTIME (2);
  * ]|
@@ -819,7 +969,7 @@
  * semicolon.
  *
  * |[<!-- language="C" -->
- * utk_char_t *utk_dgettext (utk_char_t *domain_name, utk_char_t *msgid) PCTK_ATTR_FORMAT (2);
+ * pctk_char_t *pctk_dgettext (pctk_char_t *domain_name, pctk_char_t *msgid) PCTK_ATTR_FORMAT (2);
  * ]|
  */
 #if PCTK_CC_HAS_ATTRIBUTE(__format_arg__)
@@ -842,7 +992,7 @@
  * Place the attribute before the function declaration as follows:
  *
  * |[<!-- language="C" -->
- * PCTK_ATTR_NORETURN void utk_abort (void);
+ * PCTK_ATTR_NORETURN void pctk_abort (void);
  * ]|
  *
  * Expands to the GNU C or MSVC `noreturn` function attribute depending on
@@ -859,7 +1009,7 @@
  * the %PCTK_ATTR_NORETURN macro as follows:
  *
  * |[<!-- language="C" -->
- * PCTK_ATTR_NORETURN void utk_abort (void);
+ * PCTK_ATTR_NORETURN void pctk_abort (void);
  * ]|
  *
  * Since: 0.3.8
@@ -902,7 +1052,7 @@
  * Place the attribute after the declaration, just before the semicolon.
  *
  * |[<!-- language="C" -->
- * utk_char_t utk_ascii_tolower (utk_char_t c) PCTK_ATTR_CONST;
+ * pctk_char_t pctk_ascii_tolower (pctk_char_t c) PCTK_ATTR_CONST;
  * ]|
  *
  * See the [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-const-function-attribute) for more details.
@@ -931,8 +1081,8 @@
  * argument declaration.
  *
  * |[<!-- language="C" -->
- * void my_unused_function (PCTK_ATTR_UNUSED utk_int_t unused_argument,
- *                          utk_int_t other_argument) PCTK_ATTR_UNUSED;
+ * void my_unused_function (PCTK_ATTR_UNUSED pctk_int_t unused_argument,
+ *                          pctk_int_t other_argument) PCTK_ATTR_UNUSED;
  * ]|
  *
  */
@@ -980,10 +1130,10 @@
  * switch (foo)
  *   {
  *     case 1:
- *       utk_message ("it's 1");
+ *       pctk_message ("it's 1");
  *       PCTK_ATTR_FALLTHROUGH;
  *     case 2:
- *       utk_message ("it's either 1 or 2");
+ *       pctk_message ("it's either 1 or 2");
  *       break;
  *   }
  * ]|
@@ -1066,7 +1216,7 @@
  * Place the attribute after the declaration, just before the semicolon.
  *
  * |[<!-- language="C" -->
- * utk_list_t *utk_list_append (utk_list_t *list, utk_pointer_t data) PCTK_ATTR_WARN_UNUSED_RESULT;
+ * pctk_list_t *pctk_list_append (pctk_list_t *list, pctk_pointer_t data) PCTK_ATTR_WARN_UNUSED_RESULT;
  * ]|
  *
  * Since: 0.3.8

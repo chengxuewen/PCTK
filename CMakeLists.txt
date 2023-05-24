@@ -267,7 +267,9 @@ include(PCTKDoxygenHelpers)
 include(PCTKExecutableHelpers)
 include(PCTKFindPackageHelpers)
 include(PCTKFlagHandlingHelpers)
+include(PCTKGlobalStateHelpers)
 include(PCTKSubdirectoryHelpers)
+include(PCTKSyncIncludeHelpers)
 include(PCTKFrameworkHelpers)
 include(PCTKInstallHelpers)
 include(PCTKModuleHelpers)
@@ -509,7 +511,7 @@ if(NOT PCTK_CMAKE_EXPORT_NAMESPACE)
         CACHE STRING "CMake namespace used when exporting targets [PCTK${PCTK_NAMESPACE_VERSION}]")
 endif()
 
-set(PCTK_KNOWN_MODULES_WITH_TOOLS "" CACHE INTERNAL "Known PCTK modules with tools" FORCE)
+set(PCTK_KNOWN_LIBRARIES_WITH_TOOLS "" CACHE INTERNAL "Known PCTK modules with tools" FORCE)
 
 # For adjusting variables when running tests, we need to know what
 # the correct variable is for separating entries in PATH-alike
@@ -560,7 +562,6 @@ endif()
 #-----------------------------------------------------------------------------------------------------------------------
 set(PCTK_DEFAULT_PRIVATE_ARGS
     DEFINES
-    HEADERS
     SOURCES
     LIBRARIES
     INCLUDE_DIRECTORIES
@@ -570,7 +571,6 @@ set(PCTK_DEFAULT_PRIVATE_ARGS
     PLUGIN_TYPES)
 set(PCTK_DEFAULT_PUBLIC_ARGS
     PUBLIC_DEFINES
-    PUBLIC_HEADERS
     PUBLIC_LIBRARIES
     PUBLIC_INCLUDE_DIRECTORIES
     PUBLIC_COMPILE_OPTIONS

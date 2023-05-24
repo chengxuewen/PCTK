@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
 **
-** Library: UTK
+** Library: PCTK
 **
 ** Copyright (C) 2023 ChengXueWen. Contact: 1398831004@qq.com
 **
@@ -22,7 +22,26 @@
 **
 ***********************************************************************************************************************/
 
-#ifndef _PCTKLIMITS_H_
-#define _PCTKLIMITS_H_
+#ifndef _PCTKATOMICINT_P_H
+#define _PCTKATOMICINT_P_H
 
-#endif //_PCTKLIMITS_H_
+#include <pctkAtomicInt.h>
+
+PCTK_BEGIN_NAMESPACE
+
+class PCTK_CORE_API AtomicIntPrivate
+{
+public:
+    explicit AtomicIntPrivate(AtomicInt *q) : q_ptr(q)
+    virtual ~AtomicIntPrivate() {}
+
+    AtomicInt *const q_ptr;
+
+private:
+    PCTK_DECL_PUBLIC(AtomicInt)
+    PCTK_DISABLE_COPY_MOVE(AtomicIntPrivate)
+};
+
+PCTK_END_NAMESPACE
+
+#endif //_PCTKATOMICINT_P_H

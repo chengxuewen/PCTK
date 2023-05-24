@@ -38,10 +38,9 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 #-----------------------------------------------------------------------------------------------------------------------
 pctk_add_library(${PCTK_LIB_NAME}
     EXCEPTIONS
-    PUBLIC_HEADERS
-    source/pctkOsgiFramework.h
-    source/pctkOsgiGlobal.h
     SOURCES
+    source/pctkOsgiGlobal.h
+    source/pctkOsgiFramework.h
     source/pctkOsgiFramework.cpp
     LIBRARIES
     PCTK::CorePrivate

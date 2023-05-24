@@ -22,7 +22,33 @@
 **
 ***********************************************************************************************************************/
 
-#ifndef _PCTKLIMITS_H_
-#define _PCTKLIMITS_H_
+#ifndef _PCTKSHAREDLIBRARY_P_H
+#define _PCTKSHAREDLIBRARY_P_H
 
-#endif //_PCTKLIMITS_H_
+#include <pctkSharedLibrary.h>
+
+PCTK_BEGIN_NAMESPACE
+
+class SharedLibraryPrivate
+{
+public:
+    explicit SharedLibraryPrivate(SharedLibrary *q);
+    virtual ~SharedLibraryPrivate() {}
+
+    SharedLibrary *const q_ptr;
+
+    void *m_handle;
+    std::string m_name;
+    std::string m_path;
+    std::string m_filePath;
+    std::string m_suffix;
+    std::string m_prefix;
+
+private:
+    PCTK_DECL_PUBLIC(SharedLibrary)
+    PCTK_DISABLE_COPY_MOVE(SharedLibraryPrivate)
+};
+
+PCTK_END_NAMESPACE
+
+#endif //_PCTKSHAREDLIBRARY_P_H

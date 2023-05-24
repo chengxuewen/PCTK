@@ -1,1 +1,1 @@
-#include "../source/thread/pctkAtomic_p.h
+#include "../../source/thread/pctkAtomicInt_p.h"

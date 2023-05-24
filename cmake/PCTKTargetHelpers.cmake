@@ -83,13 +83,13 @@ function(pctk_internal_extend_target target)
         # When computing the private library dependencies, we need to check not only the known
         # modules added by this repo's pctk_build_repo(), but also all module dependencies that
         # were found via find_package().
-        pctk_internal_get_pctk_all_known_modules(known_modules)
+        pctk_internal_get_all_known_librarys(known_librarys)
 
         # When a public module depends on a private module (Gui on CorePrivate)
         # make its private module depend on the other private module (GuiPrivate will depend on
         # CorePrivate).
         set(pctk_libs_private "")
-        foreach(it ${known_modules})
+        foreach(it ${known_librarys})
             list(FIND arg_LIBRARIES "PCTK::${it}Private" pos)
             if(pos GREATER -1)
                 list(APPEND pctk_libs_private "PCTK::${it}Private")
@@ -152,7 +152,7 @@ endfunction()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-# Add PCTK::target and PCTK0::target as aliases for the target
+# Add PCTK::target and PCTK1::target as aliases for the target
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_add_target_aliases target)
     set(versionless_alias "PCTK::${target}")
@@ -185,7 +185,7 @@ function(pctk_set_target_info_properties target)
         set(arg_TARGET_PRODUCT "PCTK")
     endif()
     if("${arg_TARGET_DESCRIPTION}" STREQUAL "")
-        set(arg_TARGET_DESCRIPTION "C++ Application Development Framework")
+        set(arg_TARGET_DESCRIPTION "C++ PCTK Application Development Framework")
     endif()
     if("${arg_TARGET_COMPANY}" STREQUAL "")
         set(arg_TARGET_COMPANY "The PCTK Open Source Organization.")
@@ -252,8 +252,7 @@ endfunction()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-# Set target properties that are the same for all modules, plugins, executables
-# and 3rdparty libraries.
+# Set target properties that are the same for all modules, plugins, executables and 3rdparty libraries.
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_set_common_target_properties target)
     if(PCTK_FEATURE_reduce_exports)
@@ -269,11 +268,10 @@ endfunction()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-# This function adds any defines which are local to the current repository (e.g. pctk_core,
-# pctk_multimedia). Those can be defined in the corresponding .cmake.conf file via
-# PCTK_EXTRA_INTERNAL_TARGET_DEFINES. PCTK_EXTRA_INTERNAL_TARGET_DEFINES accepts a list of definitions.
-# The definitions are passed to target_compile_definitions, which means that values can be provided
-# via the FOO=Bar syntax
+# This function adds any defines which are local to the current repository (e.g. pctk_core, pctk_multimedia).
+# Those can be defined in the corresponding .cmake.conf file via PCTK_EXTRA_INTERNAL_TARGET_DEFINES.
+# PCTK_EXTRA_INTERNAL_TARGET_DEFINES accepts a list of definitions.
+# The definitions are passed to target_compile_definitions, which means that values can be provided via the FOO=Bar syntax
 # This does nothing for interface targets
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_add_repo_local_defines target)

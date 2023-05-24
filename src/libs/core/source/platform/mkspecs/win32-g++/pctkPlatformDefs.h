@@ -31,8 +31,6 @@
 #define _PCTK_WIN32_GXX_PLATFORM_DEFS_H
 
 
-#include <utk_core/utk_global.h>
-
 #ifdef UNICODE
 #   ifndef _UNICODE
 #       define _UNICODE

@@ -1,7 +1,7 @@
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
-function(__pctk_internal_strip_target_directory_scope_token target out_var)
+function(pctk_internal_strip_target_directory_scope_token target out_var)
     # In CMake versions earlier than CMake 3.18, a subdirectory scope id is appended to the
     # target name if the target is referenced in a target_link_libraries command from a
     # different directory scope than where the target was created.

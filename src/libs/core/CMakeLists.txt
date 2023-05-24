@@ -55,7 +55,7 @@ endif()
 #-----------------------------------------------------------------------------------------------------------------------
 pctk_add_library(${PCTK_LIB_NAME}
     EXCEPTIONS
-    PUBLIC_HEADERS
+    SOURCES
     source/global/pctkCompiler.h
     source/global/pctkGlobal.h
     source/global/pctkLimits.h
@@ -63,14 +63,14 @@ pctk_add_library(${PCTK_LIB_NAME}
     source/global/pctkPreprocessor.h
     source/global/pctkProcessor.h
     source/global/pctkSystem.h
-    source/thread/pctkAtomic.h
-    source/kernel/pctkObject.h
-    HEADERS
-    source/thread/pctkAtomic_p.h
-    source/kernel/pctkObject_p.h
-    SOURCES
-    source/thread/pctkAtomic.cpp
+    source/thread/pctkAtomicInt.h
+    source/thread/pctkAtomicInt_p.h
     source/kernel/pctkObject.cpp
+    source/kernel/pctkObject.h
+    source/kernel/pctkObject_p.h
+    source/plugin/pctkSharedLibrary.cpp
+    source/plugin/pctkSharedLibrary.h
+    source/plugin/pctkSharedLibrary_p.h
     PRECOMPILED_HEADER
     "source/pctkCorePch.h")
 
