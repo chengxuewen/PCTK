@@ -268,6 +268,25 @@ inline class_name *q_func() { return reinterpret_cast<class_name *>(q_ptr); } \
 #   define PCTK_SEARCHPATH_SEPARATOR_S   ":"
 #endif
 
+#ifdef PCTK_DEBUG
+#   define PCTK_LIB_POSTFIX PCTK_DEBUG_POSTFIX
+#else
+#   define PCTK_LIB_POSTFIX ""
+#endif
+
+#ifdef PCTK_OS_WIN
+#   define PCTK_LIB_PREFIX ""
+#   define PCTK_LIB_EXT ".dll"
+#   define PCTK_EXE_EXT ""
+#else
+#   define PCTK_LIB_PREFIX "lib"
+#   define PCTK_EXE_EXT ""
+#   ifdef PCTK_OS_DARWIN
+#       define PCTK_LIB_EXT ".dylib"
+#   else
+#       define PCTK_LIB_EXT ".so"
+#   endif
+#endif
 
 
 /***********************************************************************************************************************

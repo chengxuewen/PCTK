@@ -135,6 +135,8 @@ pctk_configure_definition("PCTK_VERSION_STR" PUBLIC VALUE "\"${PROJECT_VERSION}\
 pctk_configure_definition("PCTK_VERSION_MAJOR" PUBLIC VALUE ${PROJECT_VERSION_MAJOR})
 pctk_configure_definition("PCTK_VERSION_MINOR" PUBLIC VALUE ${PROJECT_VERSION_MINOR})
 pctk_configure_definition("PCTK_VERSION_PATCH" PUBLIC VALUE ${PROJECT_VERSION_PATCH})
+pctk_configure_definition("PCTK_VERSION_PATCH" PUBLIC VALUE ${PROJECT_VERSION_PATCH})
+
 
 # pctk lib type
 if(BUILD_SHARED_LIBS)
@@ -142,6 +144,7 @@ if(BUILD_SHARED_LIBS)
 else()
     pctk_configure_definition("PCTK_STATIC" PUBLIC)
 endif()
+pctk_configure_definition("PCTK_DEBUG_POSTFIX" PUBLIC VALUE "\"${CMAKE_DEBUG_POSTFIX}\"")
 
 # pctk debug/optimization type
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

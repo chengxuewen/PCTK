@@ -66,16 +66,14 @@ public:
     /**
      * Destroys this object but does not unload the shared library.
      */
-    ~SharedLibrary() { delete d_ptr; }
+    virtual ~SharedLibrary();
 
     SharedLibrary &operator=(const SharedLibrary &other);
 
     /**
-     * Loads the shared library pointed to by this SharedLibrary object.
-     * On POSIX systems dlopen() is called with the RTLD_LAZY and
-     * RTLD_LOCAL flags unless the compiler is gcc 4.4.x or older. Then
-     * the RTLD_LAZY and RTLD_GLOBAL flags are used to load the shared library
-     * to work around RTTI problems across shared library boundaries.
+     * Loads the shared library pointed to by this SharedLibrary object. On POSIX systems dlopen() is called with the
+     * RTLD_LAZY and RTLD_LOCAL flags unless the compiler is gcc 4.4.x or older. Then the RTLD_LAZY and RTLD_GLOBAL flags
+     * are used to load the shared library to work around RTTI problems across shared library boundaries.
      *
      * @throws std::logic_error If the library is already loaded.
      * @throws std::system_error If loading the library failed.

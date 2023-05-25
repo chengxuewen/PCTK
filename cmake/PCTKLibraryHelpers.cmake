@@ -94,6 +94,8 @@ function(pctk_add_library target)
                 message(WARNING "The internal library target should end with the 'Private' suffix.")
             endif()
         endif()
+        message(arg_INTERNAL_LIBRARY=${arg_INTERNAL_LIBRARY})
+        message(arg_LIBRARY_INTERFACE_NAME=${arg_LIBRARY_INTERFACE_NAME})
     else()
         unset(arg_INTERNAL_LIBRARY)
     endif()
@@ -114,6 +116,7 @@ function(pctk_add_library target)
     else()
         set(type_to_create "") # Use default depending on PCTK configuration.
     endif()
+    message(type_to_create=${type_to_create})
 
     # add target library. If type_to_create is empty, it will be set afterwards
     pctk_internal_add_library("${target}" ${type_to_create} ${arg_SOURCES})

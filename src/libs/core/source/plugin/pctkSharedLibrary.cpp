@@ -47,8 +47,8 @@ PCTK_BEGIN_NAMESPACE
 
 SharedLibraryPrivate::SharedLibraryPrivate(SharedLibrary *q)
     : q_ptr(q),
-      m_suffix(US_LIB_EXT),
-      m_prefix(US_LIB_PREFIX)
+      m_suffix(PCTK_LIB_EXT),
+      m_prefix(PCTK_LIB_PREFIX)
 {
 
 }
@@ -71,6 +71,11 @@ SharedLibrary::SharedLibrary(const std::string &absoluteFilePath) : d_ptr(new Sh
     PCTK_D(SharedLibrary);
     d->m_filePath = absoluteFilePath;
     this->setFilePath(absoluteFilePath);
+}
+
+SharedLibrary::~SharedLibrary()
+{
+    delete d_ptr;
 }
 
 void SharedLibrary::load(int flags)
@@ -158,7 +163,7 @@ void SharedLibrary::unload()
 void SharedLibrary::setName(const std::string &name)
 {
     PCTK_D(SharedLibrary);
-    if (IsLoaded() || !d->m_filePath.empty()) {
+    if (this->isLoaded() || !d->m_filePath.empty()) {
         return;
     }
 
@@ -177,7 +182,7 @@ std::string SharedLibrary::getFilePath(const std::string &name) const
     if (!d->m_filePath.empty()) {
         return d->m_filePath;
     }
-    return this->getLibraryPath() + util::DIR_SEP + this->getPrefix() + name + this->getSuffix();
+    return this->getLibraryPath() + PCTK_DIR_SEPARATOR + this->getPrefix() + name + this->getSuffix();
 }
 
 void SharedLibrary::setFilePath(const std::string &absoluteFilePath)
@@ -190,7 +195,7 @@ void SharedLibrary::setFilePath(const std::string &absoluteFilePath)
     d->m_filePath = absoluteFilePath;
 
     std::string name = d->m_filePath;
-    std::size_t pos = d->m_filePath.find_last_of(util::DIR_SEP);
+    std::size_t pos = d->m_filePath.find_last_of(PCTK_DIR_SEPARATOR);
     if (pos != std::string::npos) {
         d->m_path = d->m_filePath.substr(0, pos);
         name = d->m_filePath.substr(pos + 1);

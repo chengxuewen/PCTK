@@ -63,6 +63,7 @@
 */
 
 #if defined(__APPLE__) && (defined(__GNUC__) || defined(__xlC__) || defined(__xlc__))
+#   define PCTK_OS_APPLE
 #   include <TargetConditionals.h>
 #   if defined(TARGET_OS_MAC) && TARGET_OS_MAC
 #       define PCTK_OS_DARWIN

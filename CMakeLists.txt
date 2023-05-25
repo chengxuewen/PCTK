@@ -316,15 +316,12 @@ pctk_option(PCTK_BUILD_COMPILER_WARNING "Enable this to build target with compil
 pctk_option(PCTK_BUILD_BENCHMARKS "Enable this to build the benchmarks" ${__pctk_build_benchmarks}
     SET __pctk_build_tests_default)
 pctk_option(PCTK_BUILD_EXAMPLES "Enable this to build examples" ON)
-pctk_option(PCTK_BUILD_TESTS "Enable this to build tests" ON)
+pctk_option(PCTK_BUILD_TESTS "Enable this to build tests" OFF)
 pctk_option(PCTK_BUILD_MINIMAL_STATIC_TESTS "Build minimal subset of tests for static PCTK builds" ON)
 pctk_option(PCTK_BUILD_PLUGINS "Enable this to build the plugins." ON)
 pctk_option(PCTK_BUILD_TOOLS "Enable this to build the tools." "${__pctk_build_tools_default}")
 pctk_option(PCTK_BUILD_APPS "Enable this to build apps" ON)
 pctk_option(PCTK_BUILD_DOCUMENTATION "Enable this to build the documentation" ON)
-
-include(CTest)
-enable_testing()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -593,3 +590,8 @@ pctk_add_subdirectory(src/apps PCTK_BUILD_APPS)
 pctk_add_subdirectory(src/tools PCTK_BUILD_TOOLS)
 pctk_add_subdirectory(src/plugins PCTK_BUILD_PLUGINS)
 pctk_add_subdirectory(src/bundles TARGET Osgi)
+if(PCTK_BUILD_TESTS)
+    include(CTest)
+    enable_testing()
+    add_subdirectory(3rdparty/cpputest-4.0)
+endif()
