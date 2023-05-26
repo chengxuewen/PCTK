@@ -94,8 +94,8 @@ function(pctk_add_library target)
                 message(WARNING "The internal library target should end with the 'Private' suffix.")
             endif()
         endif()
-        message(arg_INTERNAL_LIBRARY=${arg_INTERNAL_LIBRARY})
-        message(arg_LIBRARY_INTERFACE_NAME=${arg_LIBRARY_INTERFACE_NAME})
+#        message(arg_INTERNAL_LIBRARY=${arg_INTERNAL_LIBRARY})
+#        message(arg_LIBRARY_INTERFACE_NAME=${arg_LIBRARY_INTERFACE_NAME})
     else()
         unset(arg_INTERNAL_LIBRARY)
     endif()
@@ -116,7 +116,6 @@ function(pctk_add_library target)
     else()
         set(type_to_create "") # Use default depending on PCTK configuration.
     endif()
-    message(type_to_create=${type_to_create})
 
     # add target library. If type_to_create is empty, it will be set afterwards
     pctk_internal_add_library("${target}" ${type_to_create} ${arg_SOURCES})
@@ -331,6 +330,10 @@ function(pctk_add_library target)
             string(APPEND contents "#ifndef ${once_macro}\n#define ${once_macro}\n\n\n#endif\n")
             file(GENERATE OUTPUT "${library_header}" CONTENT "${contents}")
         endif()
+        pctk_compute_injection_forwarding_header("${target}"
+            SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/include/${library}"
+            OUT_VAR injections)
+        list(APPEND library_headers_injections "${injections}")
         list(APPEND library_headers_public "${CMAKE_CURRENT_SOURCE_DIR}/include/${library}")
         if(is_framework)
             if(NOT is_interface_lib)
@@ -455,7 +458,7 @@ function(pctk_add_library target)
             COMMAND ${CMAKE_COMMAND} -E touch "${timestamp_file}"
             DEPENDS "$<TARGET_PROPERTY:${target},_pctk_library_timestamp_dependencies>"
             VERBATIM)
-        add_custom_target(${target}_timestamp ALL DEPENDS "${timestamp_file}")
+        add_custom_target(${target}TimeStamp ALL DEPENDS "${timestamp_file}")
     endif()
 
     set(defines_for_extend_target "")
@@ -525,7 +528,6 @@ function(pctk_add_library target)
             PRIVATE_HEADER "${CMAKE_CURRENT_BINARY_DIR}/include/private/${library_config_private_header}")
     endif()
 
-    ###TODO:Del
     if(NOT arg_HEADER_LIBRARY)
         if(DEFINED library_headers_private)
             pctk_internal_add_linker_version_script("${target}" PRIVATE_HEADERS ${library_headers_private})
@@ -565,16 +567,16 @@ function(pctk_add_library target)
         if(target STREQUAL Core)
             set(extra_cmake_code "")
             # Add some variables for compatibility with PCTK config files.
-            if(PCTK_FEATURE_reduce_exports)
-                string(APPEND pctkcore_extra_cmake_code "set(PCTK_VISIBILITY_AVAILABLE TRUE)")
+            if(PCTK_FEATURE_REDUCE_EXPORTS)
+                string(APPEND pctk_extra_cmake_code "set(PCTK_VISIBILITY_AVAILABLE TRUE)")
             endif()
             if(PCTK_LIBINFIX)
-                string(APPEND pctkcore_extra_cmake_code "set(PCTK_LIBINFIX \"${PCTK_LIBINFIX}\")")
+                string(APPEND pctk_extra_cmake_code "set(PCTK_LIBINFIX \"${PCTK_LIBINFIX}\")")
             endif()
 
             # Store whether find_package(PCTKFoo) should succeed if PCTKFooTools is missing.
             if(PCTK_ALLOW_MISSING_TOOLS_PACKAGES)
-                string(APPEND pctkcore_extra_cmake_code "set(PCTK_ALLOW_MISSING_TOOLS_PACKAGES TRUE)")
+                string(APPEND pctk_extra_cmake_code "set(PCTK_ALLOW_MISSING_TOOLS_PACKAGES TRUE)")
             endif()
         endif()
 
@@ -726,7 +728,7 @@ function(pctk_add_library target)
             "${library_headers_clean}")
     endif()
 
-    pctk_internal_create_library_depends_file(${target})
+#    pctk_internal_create_library_depends_file(${target}) ###TODO:del?
 
     if(arg_INTERNAL_LIBRARY)
         target_include_directories("${target}" INTERFACE ${interface_includes})
@@ -1268,6 +1270,8 @@ function(pctk_internal_generate_win32_rc_file target)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_create_library_depends_file target)
     get_target_property(target_type "${target}" TYPE)
     if(target_type STREQUAL "INTERFACE_LIBRARY")
@@ -1288,8 +1292,7 @@ function(pctk_internal_create_library_depends_file target)
         get_target_property(optional_public_depends "${target}Private" INTERFACE_LINK_LIBRARIES)
     endif()
 
-    # Used for collecting PCTK module dependencies that should be find_package()'d in
-    # ModuleDependencies.cmake.
+    # Used for collecting PCTK module dependencies that should be find_package()'d in ModuleDependencies.cmake.
     get_target_property(target_deps "${target}" _pctk_target_deps)
     set(target_deps_seen "")
     set(pctk_library_dependencies "")

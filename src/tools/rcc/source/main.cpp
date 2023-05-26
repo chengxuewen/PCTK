@@ -7,6 +7,6 @@
 
 int main()
 {
-    std::count << "hello rcc!" << std::endl;
+    std::cout << "hello rcc!" << std::endl;
     return 0;
 }

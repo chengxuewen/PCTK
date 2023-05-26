@@ -54,6 +54,11 @@ std::string Error::getLastCErrorStr()
 #endif
 }
 
+bool Error::notFoundCError(int errval)
+{
+    return errval == ENOENT || errval == ENOTDIR;
+}
+
 #if defined(PCTK_OS_WIN)
 std::string Error::getLastWin32ErrorStr()
 {
@@ -83,6 +88,17 @@ std::string Error::getLastWin32ErrorStr()
 
     LocalFree(lpMsgBuf);
     return errMsg;
+}
+
+bool Error::notFoundWin32Error(int errval)
+{
+    return (errval == ERROR_FILE_NOT_FOUND || errval == ERROR_PATH_NOT_FOUND ||
+            errval == ERROR_INVALID_NAME      // "//foo"
+            || errval == ERROR_INVALID_DRIVE     // USB card reader with no card inserted
+            || errval == ERROR_NOT_READY         // CD/DVD drive with no disc inserted
+            || errval == ERROR_INVALID_PARAMETER // ":sys:stat.h"
+            || errval == ERROR_BAD_PATHNAME      // "//nosuch" on Win64
+            || errval == ERROR_BAD_NETPATH);     // "//nosuch" on Win32
 }
 #endif
 

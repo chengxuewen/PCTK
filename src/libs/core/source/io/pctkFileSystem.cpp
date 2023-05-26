@@ -32,12 +32,6 @@
 #   include <cerrno>
 #   include <cstring>
 #   include <unistd.h> // getcwd
-
-//#   define PCTK_STAT struct stat
-//#   define pctk_stat stat
-//#   define pctk_mkdir mkdir
-//#   define pctk_rmdir rmdir
-//#   define pctk_unlink unlink
 #else
 #   ifndef WIN32_LEAN_AND_MEAN
 #       define WIN32_LEAN_AND_MEAN
@@ -52,12 +46,6 @@
 #   else
 #       include "dirent_win32.h"
 #   endif
-
-//#   define PCTK_STAT struct _stat
-//#   define pctk_stat _stat
-//#   define pctk_mkdir _mkdir
-//#   define pctk_rmdir _rmdir
-//#   define pctk_unlink _unlink
 #endif
 
 #ifdef PCTK_OS_APPLE
@@ -71,17 +59,14 @@ PCTK_BEGIN_NAMESPACE
 
 FileSystemPrivate::FileSystemPrivate(FileSystem *q) : q_ptr(q)
 {
-
 }
 
 FileSystemPrivate::~FileSystemPrivate()
 {
-
 }
 
 FileSystem::FileSystem() : d_ptr(new FileSystemPrivate(this))
 {
-
 }
 
 namespace detail

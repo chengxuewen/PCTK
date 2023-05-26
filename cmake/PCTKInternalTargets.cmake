@@ -1,4 +1,6 @@
 
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_set_warnings_are_errors_flags target target_scope)
     set(flags "")
     if(CLANG AND NOT MSVC)
@@ -83,7 +85,7 @@ endfunction()
 # Arguments:
 #     VALUE optional value that the definition will take.
 #     SCOPE the list of scopes the definition needs to be set for. If the SCOPE is not specified the
-#        definition is added to platform_common_internal target.
+#        definition is added to PlatformCommonInternal target.
 #        Possible values:
 #            MODULE - set the definition for all PCTK modules
 #            PLUGIN - set the definition for all PCTK plugins
@@ -100,10 +102,10 @@ function(pctk_internal_add_global_definition definition)
         "${multi_value_args}"
         ${ARGN})
 
-    set(scope_MODULE platform_module_internal)
-    set(scope_PLUGIN platform_plugin_internal)
-    set(scope_TOOL platform_tool_internal)
-    set(scope_APP platform_app_internal)
+    set(scope_LIBRARY PlatformLibraryInternal)
+    set(scope_PLUGIN PlatformPluginInternal)
+    set(scope_TOOL PlatformToolInternal)
+    set(scope_APP PlatformAppInternal)
 
     set(undef_property_name "PCTK_INTERNAL_UNDEF_${definition}")
 
@@ -111,11 +113,10 @@ function(pctk_internal_add_global_definition definition)
         set(definition "${definition}=${arg_VALUE}")
     endif()
 
-    set(definition_genex
-        "$<$<NOT:$<BOOL:$<TARGET_PROPERTY:${undef_property_name}>>>:${definition}>")
+    set(definition_genex "$<$<NOT:$<BOOL:$<TARGET_PROPERTY:${undef_property_name}>>>:${definition}>")
 
     if(NOT DEFINED arg_SCOPE)
-        target_compile_definitions(platform_common_internal INTERFACE "${definition_genex}")
+        target_compile_definitions(PlatformCommonInternal INTERFACE "${definition_genex}")
     else()
         foreach(scope IN LISTS arg_SCOPE)
             if(NOT DEFINED scope_${scope})
@@ -126,59 +127,59 @@ function(pctk_internal_add_global_definition definition)
     endif()
 endfunction()
 
-add_library(platform_common_internal INTERFACE)
-pctk_internal_add_target_aliases(platform_common_internal)
-target_link_libraries(platform_common_internal INTERFACE platform)
+add_library(PlatformCommonInternal INTERFACE)
+pctk_internal_add_target_aliases(PlatformCommonInternal)
+target_link_libraries(PlatformCommonInternal INTERFACE platform)
 
-add_library(platform_module_internal INTERFACE)
-pctk_internal_add_target_aliases(platform_module_internal)
-target_link_libraries(platform_module_internal INTERFACE platform_module_internal)
+add_library(PlatformLibraryInternal INTERFACE)
+pctk_internal_add_target_aliases(PlatformLibraryInternal)
+target_link_libraries(PlatformLibraryInternal INTERFACE PlatformLibraryInternal)
 
-add_library(platform_plugin_internal INTERFACE)
-pctk_internal_add_target_aliases(platform_plugin_internal)
-target_link_libraries(platform_plugin_internal INTERFACE platform_plugin_internal)
+add_library(PlatformPluginInternal INTERFACE)
+pctk_internal_add_target_aliases(PlatformPluginInternal)
+target_link_libraries(PlatformPluginInternal INTERFACE PlatformPluginInternal)
 
-add_library(platform_app_internal INTERFACE)
-pctk_internal_add_target_aliases(platform_app_internal)
-target_link_libraries(platform_app_internal INTERFACE platform_common_internal)
+add_library(PlatformAppInternal INTERFACE)
+pctk_internal_add_target_aliases(PlatformAppInternal)
+target_link_libraries(PlatformAppInternal INTERFACE PlatformCommonInternal)
 
-add_library(platform_tool_internal INTERFACE)
-pctk_internal_add_target_aliases(platform_tool_internal)
-target_link_libraries(platform_tool_internal INTERFACE platform_app_internal)
+add_library(PlatformToolInternal INTERFACE)
+pctk_internal_add_target_aliases(PlatformToolInternal)
+target_link_libraries(PlatformToolInternal INTERFACE PlatformAppInternal)
 
 pctk_internal_add_global_definition(PCTK_NO_JAVA_STYLE_ITERATORS)
 pctk_internal_add_global_definition(PCTK_NO_NARROWING_CONVERSIONS_IN_CONNECT)
 
 if(WARNINGS_ARE_ERRORS)
-    pctk_internal_set_warnings_are_errors_flags(platform_module_internal INTERFACE)
-    pctk_internal_set_warnings_are_errors_flags(platform_plugin_internal INTERFACE)
-    pctk_internal_set_warnings_are_errors_flags(platform_app_internal INTERFACE)
+    pctk_internal_set_warnings_are_errors_flags(PlatformLibraryInternal INTERFACE)
+    pctk_internal_set_warnings_are_errors_flags(PlatformPluginInternal INTERFACE)
+    pctk_internal_set_warnings_are_errors_flags(PlatformAppInternal INTERFACE)
 endif()
 if(WIN32)
     # Needed for M_PI define. Same as mkspecs/features/pctk_module.prf.
     # It's set for every module being built, but it's not propagated to user apps.
-    target_compile_definitions(platform_module_internal INTERFACE _USE_MATH_DEFINES)
+    target_compile_definitions(PlatformLibraryInternal INTERFACE _USE_MATH_DEFINES)
 endif()
 if(FEATURE_largefile AND UNIX)
-    target_compile_definitions(platform_common_internal
+    target_compile_definitions(PlatformCommonInternal
         INTERFACE "_LARGEFILE64_SOURCE;_LARGEFILE_SOURCE")
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Clang will otherwise show error about inline method conflicting with dllimport class attribute in tools
     # (this was tested with Clang 10)
-    #    error: 'QString::operator[]' redeclared inline; 'dllimport' attribute ignored [-Werror,-Wignored-attributes]
-    target_compile_options(platform_common_internal INTERFACE -Wno-ignored-attributes)
+    #    error: 'string::operator[]' redeclared inline; 'dllimport' attribute ignored [-Werror,-Wignored-attributes]
+    target_compile_options(PlatformCommonInternal INTERFACE -Wno-ignored-attributes)
 endif()
 
-target_compile_definitions(platform_common_internal INTERFACE PCTK_NO_NARROWING_CONVERSIONS_IN_CONNECT)
-target_compile_definitions(platform_common_internal INTERFACE $<$<NOT:$<CONFIG:Debug>>:PCTK_NO_DEBUG>)
+target_compile_definitions(PlatformCommonInternal INTERFACE PCTK_NO_NARROWING_CONVERSIONS_IN_CONNECT)
+target_compile_definitions(PlatformCommonInternal INTERFACE $<$<NOT:$<CONFIG:Debug>>:PCTK_NO_DEBUG>)
 
 if(FEATURE_developer_build)
     # This causes an ABI break on Windows, so we cannot unconditionally
     # enable it. Keep it for developer builds only for now.
     ### PCTK 7: remove the if.
-    target_compile_definitions(platform_common_internal INTERFACE PCTK_STRICT_QLIST_ITERATORS)
+    target_compile_definitions(PlatformCommonInternal INTERFACE PCTK_STRICT_QLIST_ITERATORS)
 endif()
 
 function(pctk_internal_apply_bitcode_flags target)
@@ -200,13 +201,13 @@ endfunction()
 # This does not apply to user-code, which will need to silence
 # their own warnings if they use the deprecated APIs explicitly.
 if(MACOS)
-    target_compile_definitions(platform_common_internal INTERFACE GL_SILENCE_DEPRECATION)
+    target_compile_definitions(PlatformCommonInternal INTERFACE GL_SILENCE_DEPRECATION)
 elseif(UIKIT)
-    target_compile_definitions(platform_common_internal INTERFACE GLES_SILENCE_DEPRECATION)
+    target_compile_definitions(PlatformCommonInternal INTERFACE GLES_SILENCE_DEPRECATION)
 endif()
 
 if(MSVC)
-    target_compile_definitions(platform_common_internal INTERFACE
+    target_compile_definitions(PlatformCommonInternal INTERFACE
         "_CRT_SECURE_NO_WARNINGS"
         "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,SHARED_LIBRARY>:_WINDLL>")
 endif()
@@ -215,96 +216,96 @@ if(UIKIT)
     # Do what mkspecs/features/uikit/default_pre.prf does, aka enable sse2 for
     # simulator_and_device_builds.
     if(FEATURE_simulator_and_device)
-        # Setting the definition on platform_common_internal behaves slightly differently from what
+        # Setting the definition on PlatformCommonInternal behaves slightly differently from what
         # is done in qmake land. This way the define is not propagated to tests, examples, or
         # user projects built with qmake, but only modules, plugins and tools.
         # TODO: Figure out if this ok or not (sounds ok to me).
-        target_compile_definitions(platform_common_internal INTERFACE PCTK_COMPILER_SUPPORTS_SSE2)
+        target_compile_definitions(PlatformCommonInternal INTERFACE PCTK_COMPILER_SUPPORTS_SSE2)
     endif()
 endif()
 
 if(WASM AND PCTK_FEATURE_sse2)
-    target_compile_definitions(platform_common_internal INTERFACE PCTK_COMPILER_SUPPORTS_SSE2)
+    target_compile_definitions(PlatformCommonInternal INTERFACE PCTK_COMPILER_SUPPORTS_SSE2)
 endif()
 
 # Taken from mkspecs/common/msvc-version.conf and mkspecs/common/msvc-desktop.conf
 if(MSVC)
     if(MSVC_VERSION GREATER_EQUAL 1799)
-        target_compile_options(platform_common_internal INTERFACE -FS -Zc:rvalueCast -Zc:inline)
+        target_compile_options(PlatformCommonInternal INTERFACE -FS -Zc:rvalueCast -Zc:inline)
     endif()
     if(MSVC_VERSION GREATER_EQUAL 1899)
-        target_compile_options(platform_common_internal INTERFACE -Zc:strictStrings)
+        target_compile_options(PlatformCommonInternal INTERFACE -Zc:strictStrings)
         if(NOT CLANG)
-            target_compile_options(platform_common_internal INTERFACE -Zc:throwingNew)
+            target_compile_options(PlatformCommonInternal INTERFACE -Zc:throwingNew)
         endif()
     endif()
     if(MSVC_VERSION GREATER_EQUAL 1909 AND NOT CLANG)
-        target_compile_options(platform_common_internal INTERFACE -Zc:referenceBinding)
+        target_compile_options(PlatformCommonInternal INTERFACE -Zc:referenceBinding)
     endif()
     if(MSVC_VERSION GREATER_EQUAL 1919 AND NOT CLANG)
-        target_compile_options(platform_common_internal INTERFACE -Zc:externConstexpr)
+        target_compile_options(PlatformCommonInternal INTERFACE -Zc:externConstexpr)
     endif()
 
-    target_compile_options(platform_common_internal INTERFACE -Zc:wchar_t -bigobj)
+    target_compile_options(PlatformCommonInternal INTERFACE -Zc:wchar_t -bigobj)
 
-    target_compile_options(platform_common_internal INTERFACE $<$<NOT:$<CONFIG:Debug>>:-guard:cf -Gw>)
+    target_compile_options(PlatformCommonInternal INTERFACE $<$<NOT:$<CONFIG:Debug>>:-guard:cf -Gw>)
 
-    target_link_options(platform_common_internal INTERFACE
+    target_link_options(PlatformCommonInternal INTERFACE
         -DYNAMICBASE -NXCOMPAT -LARGEADDRESSAWARE
         $<$<NOT:$<CONFIG:Debug>>:-OPT:REF -OPT:ICF -GUARD:CF>)
 endif()
 
 if(MINGW)
-    target_compile_options(platform_common_internal INTERFACE -Wa,-mbig-obj)
+    target_compile_options(PlatformCommonInternal INTERFACE -Wa,-mbig-obj)
 endif()
 
 if(GCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9.2")
-    target_compile_options(platform_common_internal INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wsuggest-override>)
+    target_compile_options(PlatformCommonInternal INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wsuggest-override>)
 endif()
 
-if(PCTK_FEATURE_intelcet)
+if(PCTK_FEATURE_INTELCET)
     if(MSVC)
-        target_link_options(platform_common_internal INTERFACE -CETCOMPAT)
+        target_link_options(PlatformCommonInternal INTERFACE -CETCOMPAT)
     else()
-        target_compile_options(platform_common_internal INTERFACE -fcf-protection)
+        target_compile_options(PlatformCommonInternal INTERFACE -fcf-protection)
     endif()
 endif()
 
-if(PCTK_FEATURE_force_asserts)
-    target_compile_definitions(platform_common_internal INTERFACE PCTK_FORCE_ASSERTS)
+if(PCTK_FEATURE_FORCE_ASSERTS)
+    target_compile_definitions(PlatformCommonInternal INTERFACE PCTK_FORCE_ASSERTS)
 endif()
 
 if(DEFINED PCTK_EXTRA_DEFINES)
-    target_compile_definitions(platform_common_internal INTERFACE ${PCTK_EXTRA_DEFINES})
+    target_compile_definitions(PlatformCommonInternal INTERFACE ${PCTK_EXTRA_DEFINES})
 endif()
 
 if(DEFINED PCTK_EXTRA_INCLUDEPATHS)
-    target_include_directories(platform_common_internal INTERFACE ${PCTK_EXTRA_INCLUDEPATHS})
+    target_include_directories(PlatformCommonInternal INTERFACE ${PCTK_EXTRA_INCLUDEPATHS})
 endif()
 
 if(DEFINED PCTK_EXTRA_LIBDIRS)
-    target_link_directories(platform_common_internal INTERFACE ${PCTK_EXTRA_LIBDIRS})
+    target_link_directories(PlatformCommonInternal INTERFACE ${PCTK_EXTRA_LIBDIRS})
 endif()
 
 if(DEFINED PCTK_EXTRA_FRAMEWORKPATHS AND APPLE)
     list(TRANSFORM PCTK_EXTRA_FRAMEWORKPATHS PREPEND "-F" OUTPUT_VARIABLE __pctk_fw_flags)
-    target_compile_options(platform_common_internal INTERFACE ${__pctk_fw_flags})
-    target_link_options(platform_common_internal INTERFACE ${__pctk_fw_flags})
+    target_compile_options(PlatformCommonInternal INTERFACE ${__pctk_fw_flags})
+    target_link_options(PlatformCommonInternal INTERFACE ${__pctk_fw_flags})
     unset(__pctk_fw_flags)
 endif()
 
 pctk_internal_get_active_linker_flags(__pctk_internal_active_linker_flags)
 if(__pctk_internal_active_linker_flags)
-    target_link_options(platform_common_internal INTERFACE "${__pctk_internal_active_linker_flags}")
+    target_link_options(PlatformCommonInternal INTERFACE "${__pctk_internal_active_linker_flags}")
 endif()
 unset(__pctk_internal_active_linker_flags)
 
-if(PCTK_FEATURE_enable_gdb_index)
-    target_link_options(platform_common_internal INTERFACE "-Wl,--gdb-index")
+if(PCTK_FEATURE_ENABLE_GDB_INDEX)
+    target_link_options(PlatformCommonInternal INTERFACE "-Wl,--gdb-index")
 endif()
 
-if(PCTK_FEATURE_enable_new_dtags)
-    target_link_options(platform_common_internal INTERFACE "-Wl,--enable-new-dtags")
+if(PCTK_FEATURE_ENABLE_NEW_DTAGS)
+    target_link_options(PlatformCommonInternal INTERFACE "-Wl,--enable-new-dtags")
 endif()
 
 
@@ -334,7 +335,7 @@ function(pctk_auto_detect_implicit_sse2)
     if(TEST_subarch_sse2 AND NOT TEST_arch_${TEST_architecture_arch}_subarch_sse2)
         pctk_get_implicit_sse2_genex_condition(enable_sse2_condition)
         set(enable_sse2_genex "$<${enable_sse2_condition}:${PCTK_CFLAGS_SSE2}>")
-        target_compile_options(platform_module_internal INTERFACE ${enable_sse2_genex})
+        target_compile_options(PlatformLibraryInternal INTERFACE ${enable_sse2_genex})
         set(__implicit_sse2_for_pctk_modules_enabled TRUE PARENT_SCOPE)
     endif()
 endfunction()
@@ -352,7 +353,7 @@ function(pctk_auto_detect_fpmath)
     if(fpmath_supported AND TEST_architecture_arch STREQUAL "i386" AND __implicit_sse2_for_pctk_modules_enabled)
         pctk_get_implicit_sse2_genex_condition(enable_sse2_condition)
         set(enable_fpmath_genex "$<${enable_sse2_condition}:-mfpmath=sse>")
-        target_compile_options(platform_module_internal INTERFACE ${enable_fpmath_genex})
+        target_compile_options(PlatformLibraryInternal INTERFACE ${enable_fpmath_genex})
     endif()
 endfunction()
 pctk_auto_detect_fpmath()
@@ -381,10 +382,10 @@ function(pctk_handle_apple_app_extension_api_only)
         set(condition "$<AND:${not_disabled},${is_pctk_internal_library}>")
 
         set(flags "$<${condition}:${flags}>")
-#        target_compile_options(platform_module_internal INTERFACE ${flags})
-#        target_link_options(platform_module_internal INTERFACE ${flags})
-#        target_compile_options(platform_plugin_internal INTERFACE ${flags})
-#        target_link_options(platform_plugin_internal INTERFACE ${flags})
+        target_compile_options(PlatformLibraryInternal INTERFACE ${flags})
+        target_link_options(PlatformLibraryInternal INTERFACE ${flags})
+        target_compile_options(PlatformPluginInternal INTERFACE ${flags})
+        target_link_options(PlatformPluginInternal INTERFACE ${flags})
     endif()
 endfunction()
 pctk_handle_apple_app_extension_api_only()

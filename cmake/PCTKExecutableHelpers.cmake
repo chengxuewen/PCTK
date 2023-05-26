@@ -26,37 +26,282 @@
 #
 ########################################################################################################################
 
-function(pctk_add_executable NAME)
-    set(multiValueArgs SOURCES EXE_FLAGS INCLUDE_DIRECTORIES LIBRARIES PUBLIC_LIBRARIES INSTALL_DIRECTORY OUTPUT_DIRECTORY DEFINES)
-    cmake_parse_arguments(ARG "" "" "${multiValueArgs}" "${ARGN}")
+#-----------------------------------------------------------------------------------------------------------------------
+# This function creates a CMake target for a generic console or GUI binary.
+# Please consider to use a more specific version target like the one created
+# by pctk_add_test or pctk_add_tool below.
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_add_executable name)
+    pctk_parse_all_arguments(arg "pctk_add_executable"
+        "${PCTK_INTERNAL_ADD_EXECUTABLE_OPTIONAL_ARGS}"
+        "${PCTK_INTERNAL_ADD_EXECUTABLE_SINGLE_ARGS}"
+        "${PCTK_INTERNAL_ADD_EXECUTABLE_MULTI_ARGS}"
+        ${ARGN})
 
-    if("x${ARG_OUTPUT_DIRECTORY}" STREQUAL "x")
-        set(ARG_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    if("x${arg_OUTPUT_DIRECTORY}" STREQUAL "x")
+        set(arg_OUTPUT_DIRECTORY "${PCTK_BUILD_DIR}/${INSTALL_BINDIR}")
     endif()
 
-    if("x${ARG_INSTALL_DIRECTORY}" STREQUAL "x")
-        set(ARG_INSTALL_DIRECTORY "${INSTALL_BINDIR}")
+    get_filename_component(arg_OUTPUT_DIRECTORY "${arg_OUTPUT_DIRECTORY}"
+        ABSOLUTE BASE_DIR "${PCTK_BUILD_DIR}")
+
+    if("x${arg_INSTALL_DIRECTORY}" STREQUAL "x")
+        set(arg_INSTALL_DIRECTORY "${INSTALL_BINDIR}")
     endif()
 
-    add_executable("${NAME}" ${ARG_SOURCES} ${ARG_EXE_FLAGS})
+    pctk_internal_create_executable(${name})
+    if(ANDROID)
+        pctk_internal_android_executable_finalizer(${name})
+    endif()
+
+    if(arg_PCTK_APP AND PCTK_FEATURE_DEBUG_AND_RELEASE AND CMAKE_VERSION VERSION_GREATER_EQUAL "3.19.0")
+        set_property(TARGET "${name}"
+            PROPERTY EXCLUDE_FROM_ALL "$<NOT:$<CONFIG:${PCTK_MULTI_CONFIG_FIRST_CONFIG}>>")
+    endif()
+
+    if(WASM)
+        pctk_internal_wasm_add_finalizers("${name}")
+        pctk_internal_wasm_add_target_helpers("${name}")
+    endif()
+
+    if(arg_VERSION)
+        if(arg_VERSION MATCHES "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
+            # nothing to do
+        elseif(arg_VERSION MATCHES "[0-9]+\\.[0-9]+\\.[0-9]+")
+            set(arg_VERSION "${arg_VERSION}.0")
+        elseif(arg_VERSION MATCHES "[0-9]+\\.[0-9]+")
+            set(arg_VERSION "${arg_VERSION}.0.0")
+        elseif(arg_VERSION MATCHES "[0-9]+")
+            set(arg_VERSION "${arg_VERSION}.0.0.0")
+        else()
+            message(FATAL_ERROR "Invalid version format")
+        endif()
+    endif()
+
+    if(arg_DELAY_TARGET_INFO)
+        # Delay the setting of target info properties if requested. Needed for scope finalization of PCTK apps.
+        set_target_properties("${name}" PROPERTIES
+            PCTK_DELAYED_TARGET_VERSION "${arg_VERSION}"
+            PCTK_DELAYED_TARGET_PRODUCT "${arg_TARGET_PRODUCT}"
+            PCTK_DELAYED_TARGET_DESCRIPTION "${arg_TARGET_DESCRIPTION}"
+            PCTK_DELAYED_TARGET_COMPANY "${arg_TARGET_COMPANY}"
+            PCTK_DELAYED_TARGET_COPYRIGHT "${arg_TARGET_COPYRIGHT}")
+    else()
+        if("${arg_TARGET_DESCRIPTION}" STREQUAL "")
+            set(arg_TARGET_DESCRIPTION "PCTK ${name}")
+        endif()
+        pctk_set_target_info_properties(${name} ${ARGN}
+            TARGET_DESCRIPTION "${arg_TARGET_DESCRIPTION}"
+            TARGET_VERSION "${arg_VERSION}")
+    endif()
+
+    if(WIN32 AND NOT arg_DELAY_RC)
+        pctk_internal_generate_win32_rc_file(${name})
+    endif()
+
+    pctk_set_common_target_properties(${name})
+    pctk_internal_add_repo_local_defines(${name})
+
+    if(ANDROID)
+        # The above call to pctk_set_common_target_properties() sets the symbol
+        # visibility to hidden, but for Android, we need main() to not be hidden
+        # because it has to be loadable at runtime using dlopen().
+        set_property(TARGET ${name} PROPERTY C_VISIBILITY_PRESET default)
+        set_property(TARGET ${name} PROPERTY CXX_VISIBILITY_PRESET default)
+    endif()
+
+    #    pctk_autogen_tools_initial_setup(${name})
+    pctk_skip_warnings_are_errors_when_repo_unclean("${name}")
+
+    #    set(extra_libraries "")
+    #    if(arg_CORE_LIBRARY STREQUAL "Bootstrap")
+    #        list(APPEND extra_libraries ${PCTK_CMAKE_EXPORT_NAMESPACE}::Bootstrap)
+    #    elseif(NOT arg_CORE_LIBRARY STREQUAL "None")
+    #        list(APPEND extra_libraries ${PCTK_CMAKE_EXPORT_NAMESPACE}::Core)
+    #    endif()
 
     set(private_includes
-            "${CMAKE_CURRENT_SOURCE_DIR}"
-            "${CMAKE_CURRENT_BINARY_DIR}"
-            ${ARG_INCLUDE_DIRECTORIES})
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_BINARY_DIR}"
+        ${arg_INCLUDE_DIRECTORIES})
 
-    set_target_properties("${NAME}" PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${ARG_OUTPUT_DIRECTORY}"
-            LIBRARY_OUTPUT_DIRECTORY "${ARG_OUTPUT_DIRECTORY}")
+    pctk_internal_extend_target("${name}"
+        SOURCES ${arg_SOURCES}
+        INCLUDE_DIRECTORIES ${private_includes}
+        DEFINES ${arg_DEFINES}
+        LIBRARIES ${arg_LIBRARIES}
+        PUBLIC_LIBRARIES ${extra_libraries} ${arg_PUBLIC_LIBRARIES}
+        COMPILE_OPTIONS ${arg_COMPILE_OPTIONS}
+        LINK_OPTIONS ${arg_LINK_OPTIONS})
+    set_target_properties("${name}" PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${arg_OUTPUT_DIRECTORY}"
+        LIBRARY_OUTPUT_DIRECTORY "${arg_OUTPUT_DIRECTORY}"
+        WIN32_EXECUTABLE "${arg_GUI}"
+        MACOSX_BUNDLE "${arg_GUI}")
 
-    target_link_libraries(${NAME}
-            PRIVATE ${ARG_LIBRARIES}
-            PUBLIC ${ARG_PUBLIC_LIBRARIES})
+    pctk_internal_set_exceptions_flags("${name}" ${arg_EXCEPTIONS})
 
-    target_include_directories(${NAME} PRIVATE
-            ${CMAKE_CURRENT_BINARY_DIR}
-            ${CMAKE_CURRENT_SOURCE_DIR}
-            ${ARG_INCLUDE_DIRECTORIES})
+    # Check if target needs to be excluded from all target. Also affects pctk_install.
+    # Set by pctk_exclude_tool_directories_from_default_target.
+    set(exclude_from_all FALSE)
+    if(__pctk_exclude_tool_directories)
+        foreach(absolute_dir ${__pctk_exclude_tool_directories})
+            string(FIND "${CMAKE_CURRENT_SOURCE_DIR}" "${absolute_dir}" dir_starting_pos)
+            if(dir_starting_pos EQUAL 0)
+                set(exclude_from_all TRUE)
+                set_target_properties("${name}" PROPERTIES EXCLUDE_FROM_ALL TRUE)
+                break()
+            endif()
+        endforeach()
+    endif()
 
-    target_compile_definitions(${NAME} PRIVATE ${ARG_DEFINES})
+    if(NOT arg_NO_INSTALL)
+        set(additional_install_args "")
+        if(exclude_from_all)
+            list(APPEND additional_install_args EXCLUDE_FROM_ALL COMPONENT "ExcludedExecutables")
+        endif()
+
+        pctk_get_cmake_configurations(cmake_configs)
+        foreach(cmake_config ${cmake_configs})
+            pctk_get_install_target_default_args(
+                OUT_VAR install_targets_default_args
+                CMAKE_CONFIG "${cmake_config}"
+                ALL_CMAKE_CONFIGS "${cmake_configs}"
+                RUNTIME "${arg_INSTALL_DIRECTORY}"
+                LIBRARY "${arg_INSTALL_DIRECTORY}"
+                BUNDLE "${arg_INSTALL_DIRECTORY}")
+
+            # Make installation optional for targets that are not built by default in this config
+            if(NOT exclude_from_all AND arg_PCTK_APP AND PCTK_FEATURE_DEBUG_AND_RELEASE
+                AND NOT (cmake_config STREQUAL PCTK_MULTI_CONFIG_FIRST_CONFIG))
+                set(install_optional_arg "OPTIONAL")
+            else()
+                unset(install_optional_arg)
+            endif()
+
+            pctk_install(TARGETS "${name}"
+                ${additional_install_args} # Needs to be before the DESTINATIONS.
+                ${install_optional_arg}
+                CONFIGURATIONS ${cmake_config}
+                ${install_targets_default_args})
+        endforeach()
+
+        if(NOT exclude_from_all AND arg_PCTK_APP AND PCTK_FEATURE_DEBUG_AND_RELEASE)
+            set(separate_debug_info_executable_arg "PCTK_EXECUTABLE")
+        else()
+            unset(separate_debug_info_executable_arg)
+        endif()
+        pctk_enable_separate_debug_info(${name} "${arg_INSTALL_DIRECTORY}"
+            ${separate_debug_info_executable_arg}
+            ADDITIONAL_INSTALL_ARGS ${additional_install_args})
+        pctk_internal_install_pdb_files(${name} "${arg_INSTALL_DIRECTORY}")
+    endif()
+
+    # If linking against Gui, make sure to also build the default PA(Platform Abstraction) plugin.
+    # This makes the experience of an initial PCTK configuration to build and run one single test / executable nicer.
+    #    get_target_property(linked_libs "${name}" LINK_LIBRARIES)
+    #    if("PCTK::Gui" IN_LIST linked_libs AND TARGET pa_default_plugins)
+    #        add_dependencies("${name}" pa_default_plugins)
+    #    endif()
+
+    if(NOT BUILD_SHARED_LIBS)
+        # For static builds, we need to explicitly link to plugins we want to be
+        # loaded with the executable. User projects get that automatically, but
+        # for tools built as part of PCTK, we can't use that mechanism because it
+        # would pollute the targets we export as part of an install and lead to
+        # circular dependencies. The logic here is a simpler equivalent of the
+        # more dynamic logic in PCTKPlugins.cmake.in, but restricted to only
+        # adding plugins that are provided by the same module as the module
+        # libraries the executable links to.
+        set(libs
+            ${arg_LIBRARIES}
+            ${arg_PUBLIC_LIBRARIES}
+            ${extra_libraries})
+
+        set(deduped_libs "")
+        foreach(lib IN LISTS libs)
+            if(NOT TARGET "${lib}")
+                continue()
+            endif()
+
+            # Normalize module by stripping any leading "PCTK::", because properties are set on the
+            # versioned target (either Gui when building the module, or PCTK6::Gui when it's
+            # imported).
+            if(lib MATCHES "PCTK::([-_A-Za-z0-9]+)")
+                set(new_lib "${PCTK_CMAKE_EXPORT_NAMESPACE}::${CMAKE_MATCH_1}")
+                if(TARGET "${new_lib}")
+                    set(lib "${new_lib}")
+                endif()
+            endif()
+
+            # Unalias the target.
+            get_target_property(aliased_target ${lib} ALIASED_TARGET)
+            if(aliased_target)
+                set(lib ${aliased_target})
+            endif()
+
+            list(APPEND deduped_libs "${lib}")
+        endforeach()
+
+        list(REMOVE_DUPLICATES deduped_libs)
+
+        foreach(lib IN LISTS deduped_libs)
+            string(MAKE_C_IDENTIFIER "${name}_plugin_imports_${lib}" out_file)
+            string(APPEND out_file .cpp)
+
+            # Initialize plugins that are built in the same repository as the PCTK module 'lib'.
+            set(class_names_regular "$<GENEX_EVAL:$<TARGET_PROPERTY:${lib},_pctk_initial_repo_plugin_class_names>>")
+
+            # Initialize plugins that are built in the current PCTK repository, but are associated with a PCTK libraries
+            # from a different repository .
+            string(MAKE_C_IDENTIFIER "${PROJECT_NAME}" current_project_name)
+            set(prop_prefix "_pctk_repo_${current_project_name}")
+            set(class_names_current_project "$<GENEX_EVAL:$<TARGET_PROPERTY:${lib},${prop_prefix}_plugin_class_names>>")
+
+            # Only add separator if first list is not empty, so we don't trigger the file generation when all lists are empty.
+            set(class_names_separator "$<$<NOT:$<STREQUAL:${class_names_regular},>>:;>")
+            set(class_names "${class_names_regular}${class_names_separator}${class_names_current_project}")
+
+            set(out_file_path "${CMAKE_CURRENT_BINARY_DIR}/${out_file}")
+
+            #            file(GENERATE OUTPUT "${out_file_path}" CONTENT
+            #                "// This file is auto-generated. Do not edit.
+            #                #include <PCTKPlugin>
+            #                Q_IMPORT_PLUGIN($<JOIN:${class_names},)\nQ_IMPORT_PLUGIN(>)"
+            #                CONDITION "$<NOT:$<STREQUAL:${class_names},>>")
+
+            # CMake versions earlier than 3.18.0 can't find the generated file for some reason,
+            # failing at generation phase.
+            # Explicitly marking the file as GENERATED fixes the issue.
+            set_source_files_properties("${out_file_path}" PROPERTIES GENERATED TRUE)
+
+            target_sources(${name} PRIVATE
+                "$<$<NOT:$<STREQUAL:${class_names},>>:${out_file_path}>")
+            target_link_libraries(${name} PRIVATE
+                "$<TARGET_PROPERTY:${lib},_pctk_initial_repo_plugins>"
+                "$<TARGET_PROPERTY:${lib},${prop_prefix}_plugins>")
+        endforeach()
+    endif()
+endfunction()
+
+
+function(pctk_internal_create_executable target)
+    if(ANDROID)
+        list(REMOVE_ITEM ARGN "WIN32" "MACOSX_BUNDLE")
+        add_library("${target}" MODULE ${ARGN})
+        # On our builds we do don't compile the executables with
+        # visibility=hidden. Not having this flag set will cause the
+        # executable to have main() hidden and can then no longer be loaded
+        # through dlopen()
+        set_property(TARGET "${target}" PROPERTY C_VISIBILITY_PRESET default)
+        set_property(TARGET "${target}" PROPERTY CXX_VISIBILITY_PRESET default)
+        set_property(TARGET "${target}" PROPERTY OBJC_VISIBILITY_PRESET default)
+        set_property(TARGET "${target}" PROPERTY OBJCXX_VISIBILITY_PRESET default)
+        pctk_android_apply_arch_suffix("${target}")
+        set_property(TARGET "${target}" PROPERTY _pctk_is_android_executable TRUE)
+    else()
+        add_executable("${target}" ${ARGN})
+    endif()
+
+    pctk_internal_set_up_static_runtime_library("${target}")
 endfunction()

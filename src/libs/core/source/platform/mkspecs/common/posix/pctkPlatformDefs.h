@@ -102,6 +102,7 @@
 #define PCTK_CHDIR                chdir
 #define PCTK_MKDIR                mkdir
 #define PCTK_RMDIR                rmdir
+#define PCTK_UNLINK               unlink
 
 // File I/O
 #define PCTK_CLOSE                close

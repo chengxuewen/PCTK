@@ -121,6 +121,7 @@ if(PCTK_FEATURE_DEV_BUILD)
     else()
         set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     endif()
+    set(__pctk_build_warnings_as_errors ON)
     set(__pctk_build_tests_default ON)
     set(__pctk_build_benchmarks ON)
 
@@ -136,6 +137,7 @@ if(PCTK_FEATURE_DEV_BUILD)
         set(__pctk_build_benchmarks OFF)
     endif()
 else()
+    set(__pctk_build_warnings_as_errors OFF)
     set(__pctk_build_tests_default OFF)
     set(__pctk_build_benchmarks OFF)
 endif()
@@ -275,6 +277,7 @@ include(PCTKInstallHelpers)
 include(PCTKModuleHelpers)
 include(PCTKLibraryHelpers)
 #include(PCTKNoLinkTargetHelpers)
+include(PCTKPathHasSymlinksCheck)
 include(PCTKPluginHelpers)
 include(PCTKPrecompiledHelpers)
 include(PCTKPkgConfigHelpers)
@@ -299,7 +302,7 @@ endif()
 include(PCTKPublicTargetHelpers)
 include(PCTKPublicWalkLibsHelpers)
 #include(PCTKPublicFindPackageHelpers)
-#include(PCTKPublicDependencyHelpers)
+include(PCTKPublicDependencyHelpers)
 #include(PCTKPublicTestHelpers)
 #include(PCTKPublicToolHelpers)
 
@@ -313,6 +316,7 @@ pctk_option(PCTK_BUILD_SHARED_LIBS "Enable this to build as dynamically" ON
 pctk_option(PCTK_BUILD_USE_PCH "Enable this to build use precompiled header files for compilation" ON
     DEPENDS PCTK_BUILD_SHARED_LIBS)
 pctk_option(PCTK_BUILD_COMPILER_WARNING "Enable this to build target with compiler warnings" OFF)
+pctk_option(PCTK_BUILD_WARNINGS_ARE_ERRORS "Build PCTK with warnings as errors" ${__pctk_build_warnings_as_errors})
 pctk_option(PCTK_BUILD_BENCHMARKS "Enable this to build the benchmarks" ${__pctk_build_benchmarks}
     SET __pctk_build_tests_default)
 pctk_option(PCTK_BUILD_EXAMPLES "Enable this to build examples" ON)
@@ -534,12 +538,6 @@ if(CMAKE_HOST_APPLE AND APPLE)
 endif()
 
 
-#-----------------------------------------------------------------------------------------------------------------------
-# Bail out if any part of the build directory's path is symlinked.
-#-----------------------------------------------------------------------------------------------------------------------
-include(PCTKPathHasSymlinksCheck)
-pctk_internal_check_if_path_has_symlinks("${CMAKE_BINARY_DIR}")
-
 
 #-----------------------------------------------------------------------------------------------------------------------
 # build directory check
@@ -582,14 +580,51 @@ set(PCTK_DEFAULT_TARGET_INFO_ARGS
     TARGET_COPYRIGHT)
 
 
+# Collection of arguments so they can be shared across pctk_internal_add_executable and pctk_internal_add_test_helper.
+set(PCTK_INTERNAL_ADD_EXECUTABLE_OPTIONAL_ARGS
+    GUI
+    NO_INSTALL
+    EXCEPTIONS
+    DELAY_RC
+    DELAY_TARGET_INFO
+    PCTK_APP)
+set(PCTK_INTERNAL_ADD_EXECUTABLE_SINGLE_ARGS
+    CORE_LIBRARY
+    OUTPUT_DIRECTORY
+    INSTALL_DIRECTORY
+    VERSION
+    ${PCTK_DEFAULT_TARGET_INFO_ARGS})
+set(PCTK_INTERNAL_ADD_EXECUTABLE_MULTI_ARGS
+    ${PCTK_DEFAULT_PRIVATE_ARGS}
+    ${PCTK_DEFAULT_PUBLIC_ARGS})
+
+
 #-----------------------------------------------------------------------------------------------------------------------
 # add subdirectory
 #-----------------------------------------------------------------------------------------------------------------------
+# Bail out if any part of the build directory's path is symlinked.
+pctk_internal_check_if_path_has_symlinks("${CMAKE_BINARY_DIR}")
+
+#pctk_build_repo_begin()
+
+## Targets for global features, etc.:
+#include(PCTKGlobalTargets)
+
+## Should this Qt be built with Werror?
+# Find Apple frameworks if needed.
+pctk_find_apple_system_frameworks()
+# Decide whether tools will be built.
+pctk_check_if_tools_will_be_built()
+
 pctk_add_subdirectory(src/libs)
 pctk_add_subdirectory(src/apps PCTK_BUILD_APPS)
 pctk_add_subdirectory(src/tools PCTK_BUILD_TOOLS)
 pctk_add_subdirectory(src/plugins PCTK_BUILD_PLUGINS)
 pctk_add_subdirectory(src/bundles TARGET Osgi)
+
+#pctk_build_repo_end()
+
+#pctk_internal_create_depends_files()
 if(PCTK_BUILD_TESTS)
     include(CTest)
     enable_testing()

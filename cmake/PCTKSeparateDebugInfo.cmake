@@ -4,7 +4,9 @@ if(CMAKE_VERSION VERSION_LESS 3.17.0)
     set(CMAKE_CURRENT_FUNCTION_LIST_DIR ..)
 endif()
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Builds a shared library which will have strip run on it.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_try_compile_binary_for_strip binary_out_var)
     # Need to find the config.tests files depending whether the pctkbase sources are available.
     # This mirrors the logic in pctk_set_up_build_internals_paths.
@@ -65,6 +67,8 @@ function(pctk_internal_try_compile_binary_for_strip binary_out_var)
     set(${binary_out_var} "${output_binary_path}" PARENT_SCOPE)
 endfunction()
 
+
+#-----------------------------------------------------------------------------------------------------------------------
 # When using the MinGW 11.2.0 toolchain, cmake --install --strip as used by
 # pctk-cmake-private-install.cmake, removes the .gnu_debuglink section in binaries and thus
 # breaks the separate debug info feature.
@@ -77,6 +81,7 @@ endfunction()
 #
 # Once CMake supports custom strip arguments, we can remove the part that creates a shell wrapper.
 # https://gitlab.kitware.com/cmake/cmake/-/issues/23346
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_generate_binary_strip_wrapper)
     # Return early if check was done already, if explicitly skipped, or when building a static PCTK.
     if(DEFINED CACHE{PCTK_INTERNAL_STRIP_SUPPORTS_KEEP_SECTION}
@@ -90,8 +95,7 @@ function(pctk_internal_generate_binary_strip_wrapper)
     # The value might have been determined by CMake via CMakeDetermineCXXCompiler ->
     # CMakeFindBinUtils -> find_program(), or it might have been set by a toolchain file.
     if(NOT PCTK_INTERNAL_ORIGINAL_CMAKE_STRIP AND CMAKE_STRIP)
-        set(PCTK_INTERNAL_ORIGINAL_CMAKE_STRIP "${CMAKE_STRIP}" CACHE INTERNAL
-            "Original strip binary")
+        set(PCTK_INTERNAL_ORIGINAL_CMAKE_STRIP "${CMAKE_STRIP}" CACHE INTERNAL "Original strip binary")
     endif()
 
     message(STATUS "CMAKE_STRIP (original): ${PCTK_INTERNAL_ORIGINAL_CMAKE_STRIP}")
@@ -121,8 +125,7 @@ function(pctk_internal_generate_binary_strip_wrapper)
             "${CMAKE_STRIP}" ${strip_arguments} "${valid_binary_path}"
             OUTPUT_VARIABLE strip_probe_output
             ERROR_VARIABLE strip_probe_output
-            RESULT_VARIABLE strip_result_var
-        )
+            RESULT_VARIABLE strip_result_var)
 
         # A successful strip of a binary should have a '0' exit code.
         if(NOT strip_result_var STREQUAL "0")
@@ -132,8 +135,7 @@ function(pctk_internal_generate_binary_strip_wrapper)
         endif()
 
         # Cache the result.
-        set(PCTK_INTERNAL_STRIP_SUPPORTS_KEEP_SECTION "${keep_section_supported}" CACHE BOOL
-            "strip supports --keep-section")
+        set(PCTK_INTERNAL_STRIP_SUPPORTS_KEEP_SECTION "${keep_section_supported}" CACHE BOOL "strip supports --keep-section")
 
         message(DEBUG
             "pctk_internal_generate_binary_strip_wrapper:\n"
@@ -195,7 +197,10 @@ function(pctk_internal_generate_binary_strip_wrapper)
     endif()
 endfunction()
 
+
+#-----------------------------------------------------------------------------------------------------------------------
 # Enable separate debug information for the given target
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_enable_separate_debug_info target installDestination)
     set(flags PCTK_EXECUTABLE)
     set(options)
@@ -263,7 +268,7 @@ function(pctk_enable_separate_debug_info target installDestination)
             )
         set(debug_info_target "${debug_info_target_dir}/$<TARGET_FILE_BASE_NAME:${target}>")
 
-        if(arg_PCTK_EXECUTABLE AND PCTK_FEATURE_debug_and_release)
+        if(arg_PCTK_EXECUTABLE AND PCTK_FEATURE_DEBUG_AND_RELEASE)
             pctk_get_cmake_configurations(cmake_configs)
             foreach(cmake_config ${cmake_configs})
                 # Make installation optional for targets that are not built by default in this config

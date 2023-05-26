@@ -31,15 +31,18 @@
 
 PCTK_BEGIN_NAMESPACE
 
-class Error
+class PCTK_CORE_API Error
 {
 public:
     static std::string getLastCErrorStr();
 
-#if defined(PCTK_OS_WIN)
-    std::string getLastWin32ErrorStr();
-#endif
+    static bool notFoundCError(int errval);
 
+#if defined(PCTK_OS_WIN)
+    static std::string getLastWin32ErrorStr();
+
+    static bool notFoundWin32Error(int errval);
+#endif
 
 };
 

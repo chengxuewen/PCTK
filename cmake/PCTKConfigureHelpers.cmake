@@ -803,7 +803,7 @@ endfunction()
 #       It would be nice to handle that case in a better way, but it's not that important
 #       given that gcc > 12.1 now supports -fuse-ld=mold
 # NOTE: In comparison to clang, in the gcc < 12.1 case, we pass the full path to where mold is
-#       and that is recorded in platform_common_internal's INTERFACE_LINK_OPTIONS target.
+#       and that is recorded in PlatformCommonInternal's INTERFACE_LINK_OPTIONS target.
 #       Moving such a PCTK to a different machine and trying to build another repo won't
 #       work because the recorded path will be invalid. This is not a problem with
 #       the gcc >= 12.1 case

@@ -255,7 +255,7 @@ endfunction()
 # Set target properties that are the same for all modules, plugins, executables and 3rdparty libraries.
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_set_common_target_properties target)
-    if(PCTK_FEATURE_reduce_exports)
+    if(PCTK_FEATURE_REDUCE_EXPORTS)
         set_target_properties(${target} PROPERTIES
             C_VISIBILITY_PRESET hidden
             CXX_VISIBILITY_PRESET hidden
@@ -345,9 +345,9 @@ function(pctk_internal_export_additional_targets_file)
     set_property(GLOBAL APPEND
         PROPERTY _pctk_export_additional_targets_config_install_dir_${id} "${arg_CONFIG_INSTALL_DIR}")
 
-#    message(id=${id})
-#    message(arg_EXPORT_NAME_PREFIX=${arg_EXPORT_NAME_PREFIX})
-#    message(arg_CONFIG_INSTALL_DIR=${arg_CONFIG_INSTALL_DIR})
+    #    message(id=${id})
+    #    message(arg_EXPORT_NAME_PREFIX=${arg_EXPORT_NAME_PREFIX})
+    #    message(arg_CONFIG_INSTALL_DIR=${arg_CONFIG_INSTALL_DIR})
     pctk_add_list_file_finalizer(pctk_internal_export_additional_targets_file_finalizer)
 endfunction()
 
@@ -360,7 +360,7 @@ macro(pctk_internal_append_export_additional_targets)
         EXPORT_NAME_PREFIX "${arg_EXPORT_NAME_PREFIX}"
         TARGETS ${arg_TARGETS}
         TARGET_EXPORT_NAMES ${arg_TARGET_EXPORT_NAMES})
-#    message(arg_EXPORT_NAME_PREFIX=${arg_EXPORT_NAME_PREFIX})
+    #    message(arg_EXPORT_NAME_PREFIX=${arg_EXPORT_NAME_PREFIX})
     pctk_internal_get_export_additional_targets_id("${arg_EXPORT_NAME_PREFIX}" id)
 
     set_property(GLOBAL APPEND PROPERTY _pctk_export_additional_targets_${id} "${arg_TARGETS}")
@@ -514,7 +514,7 @@ endfunction()
 #-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_export_additional_targets_file_finalizer)
     get_property(ids GLOBAL PROPERTY _pctk_export_additional_targets_ids)
-#    message(ids=${ids})
+    #    message(ids=${ids})
     foreach(id ${ids})
         pctk_internal_export_additional_targets_file_handler("${id}")
     endforeach()
@@ -604,7 +604,7 @@ function(pctk_internal_export_additional_targets_file_handler id)
 
         # Non-prefix debug-and-release builds: add check for the existence of the debug binary of
         # the target.  It is not built by default.
-        if(NOT PCTK_WILL_INSTALL AND PCTK_FEATURE_debug_and_release)
+        if(NOT PCTK_WILL_INSTALL AND PCTK_FEATURE_DEBUG_AND_RELEASE)
             get_target_property(excluded_genex ${target} EXCLUDE_FROM_ALL)
             if(NOT excluded_genex STREQUAL "")
                 string(APPEND content "
@@ -700,4 +700,64 @@ function(pctk_internal_export_additional_targets_file_handler id)
     endif()
     pctk_configure_file(OUTPUT "${output_file}" CONTENT "${content}")
     pctk_install(FILES "${output_file}" DESTINATION "${arg_CONFIG_INSTALL_DIR}")
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_internal_apply_strict_cpp target)
+    # Disable C, Obj-C and C++ GNU extensions aka no "-std=gnu++11".  Allow opt-out via variable.
+    if(NOT PCTK_ENABLE_CXX_EXTENSIONS)
+        get_target_property(target_type "${target}" TYPE)
+        if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
+            set_target_properties("${target}" PROPERTIES
+                CXX_EXTENSIONS OFF
+                C_EXTENSIONS OFF
+                OBJC_EXTENSIONS OFF
+                OBJCXX_EXTENSIONS OFF)
+        endif()
+    endif()
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_internal_get_main_cmake_configuration out_var)
+    if(CMAKE_BUILD_TYPE)
+        set(config "${CMAKE_BUILD_TYPE}")
+    elseif(PCTK_MULTI_CONFIG_FIRST_CONFIG)
+        set(config "${PCTK_MULTI_CONFIG_FIRST_CONFIG}")
+    endif()
+    set("${out_var}" "${config}" PARENT_SCOPE)
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_internal_get_upper_case_main_cmake_configuration out_var)
+    pctk_internal_get_main_cmake_configuration("${out_var}")
+    string(TOUPPER "${${out_var}}" upper_config)
+    set("${out_var}" "${upper_config}" PARENT_SCOPE)
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_internal_adjust_main_config_runtime_output_dir target output_dir)
+    # When building PCTK with multiple configurations, place the main configuration executable
+    # directly in ${output_dir}, rather than a ${output_dir}/<CONFIG> subdirectory.
+    pctk_internal_get_upper_case_main_cmake_configuration(main_cmake_configuration)
+    set_target_properties("${target}" PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${main_cmake_configuration} "${output_dir}")
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_android_apply_arch_suffix target)
+    get_target_property(target_type ${target} TYPE)
+    if(target_type STREQUAL "SHARED_LIBRARY" OR target_type STREQUAL "MODULE_LIBRARY")
+        set_property(TARGET "${target}" PROPERTY SUFFIX "_${CMAKE_ANDROID_ARCH_ABI}.so")
+    elseif(target_type STREQUAL "STATIC_LIBRARY")
+        set_property(TARGET "${target}" PROPERTY SUFFIX "_${CMAKE_ANDROID_ARCH_ABI}.a")
+    endif()
 endfunction()

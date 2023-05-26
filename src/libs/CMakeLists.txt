@@ -25,6 +25,6 @@
 # SOFTWARE.
 #
 ########################################################################################################################
-#
-#pctk_add_subdirectory(core)
-#pctk_add_subdirectory(osgi)
+
+pctk_add_subdirectory(core)
+pctk_add_subdirectory(osgi)

@@ -2,6 +2,63 @@
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
+macro(pctk_find_apple_system_frameworks)
+    if(APPLE)
+        pctk_internal_find_apple_system_framework(FWAppKit AppKit)
+        pctk_internal_find_apple_system_framework(FWAssetsLibrary AssetsLibrary)
+        pctk_internal_find_apple_system_framework(FWAudioToolbox AudioToolbox)
+        pctk_internal_find_apple_system_framework(FWApplicationServices ApplicationServices)
+        pctk_internal_find_apple_system_framework(FWCarbon Carbon)
+        pctk_internal_find_apple_system_framework(FWCoreFoundation CoreFoundation)
+        pctk_internal_find_apple_system_framework(FWCoreServices CoreServices)
+        pctk_internal_find_apple_system_framework(FWCoreGraphics CoreGraphics)
+        pctk_internal_find_apple_system_framework(FWCoreText CoreText)
+        pctk_internal_find_apple_system_framework(FWCoreVideo CoreVideo)
+        pctk_internal_find_apple_system_framework(FWCryptoTokenKit CryptoTokenKit)
+        pctk_internal_find_apple_system_framework(FWDiskArbitration DiskArbitration)
+        pctk_internal_find_apple_system_framework(FWFoundation Foundation)
+        pctk_internal_find_apple_system_framework(FWIOBluetooth IOBluetooth)
+        pctk_internal_find_apple_system_framework(FWIOKit IOKit)
+        pctk_internal_find_apple_system_framework(FWIOSurface IOSurface)
+        pctk_internal_find_apple_system_framework(FWImageIO ImageIO)
+        pctk_internal_find_apple_system_framework(FWMetal Metal)
+        pctk_internal_find_apple_system_framework(FWMobileCoreServices MobileCoreServices)
+        pctk_internal_find_apple_system_framework(FWQuartzCore QuartzCore)
+        pctk_internal_find_apple_system_framework(FWSecurity Security)
+        pctk_internal_find_apple_system_framework(FWSystemConfiguration SystemConfiguration)
+        pctk_internal_find_apple_system_framework(FWUIKit UIKit)
+        pctk_internal_find_apple_system_framework(FWCoreLocation CoreLocation)
+        pctk_internal_find_apple_system_framework(FWCoreMotion CoreMotion)
+        pctk_internal_find_apple_system_framework(FWWatchKit WatchKit)
+        pctk_internal_find_apple_system_framework(FWGameController GameController)
+        pctk_internal_find_apple_system_framework(FWCoreBluetooth CoreBluetooth)
+    endif()
+endmacro()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Given framework_name == 'IOKit', sets non-cache variable 'FWIOKit' to '-framework IOKit' in the calling directory
+# scope if the framework is found, or 'IOKit-NOTFOUND'.
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_internal_find_apple_system_framework out_var framework_name)
+    # To avoid creating many FindFoo.cmake files for each apple system framework, populate each  FWFoo variable with
+    # '-framework Foo' instead of an absolute path to the framework. This makes  the generated CMake target files
+    # relocatable, so that Xcode SDK absolute paths are not hardcoded, like with Xcode11.app on the CI.
+    # We might revisit this later.
+    set(cache_var_name "${out_var}Internal")
+
+    find_library(${cache_var_name} "${framework_name}")
+
+    if(${cache_var_name} AND ${cache_var_name} MATCHES ".framework$")
+        set(${out_var} "-framework ${framework_name}" PARENT_SCOPE)
+    else()
+        set(${out_var} "${out_var}-NOTFOUND" PARENT_SCOPE)
+    endif()
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_finalize_framework_headers_copy target)
     get_target_property(target_type ${target} TYPE)
     if(${target_type} STREQUAL "INTERFACE_LIBRARY")
@@ -77,3 +134,5 @@ function(pctk_internal_get_framework_info out_var target)
     set(${out_var}_private_header_dir "${${out_var}_private_header_dir}" PARENT_SCOPE)
     set(${out_var}_private_library_header_dir "${${out_var}_private_library_header_dir}" PARENT_SCOPE)
 endfunction()
+
+

@@ -36,11 +36,12 @@
 PCTK_BEGIN_NAMESPACE
 
 /**
- * Compatibility functions to replace "std::to_string(...)" functions
- * on Android, since the latest Android NDKs lack "std::to_string(...)"
- * support.
+ * @brief Compatibility functions to replace "std::to_string(...)" functions on Android, since the latest Android NDKs
+ * lack "std::to_string(...)" support.
+ * @tparam T
+ * @param val
+ * @return
  */
-
 template<typename T>
 std::string toString(T val)
 {

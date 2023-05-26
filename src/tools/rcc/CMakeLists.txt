@@ -29,16 +29,16 @@
 #-----------------------------------------------------------------------------------------------------------------------
 # Set lib base name and out put path
 #-----------------------------------------------------------------------------------------------------------------------
-set(PCTK_TOOL_NAME rcc)
+set(PCTK_TOOL_NAME Rcc)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
-
-#pctk_internal_add_tool(${PCTK_TOOL_NAME}
-#    TARGET_DESCRIPTION "PCTK Resource Compiler"
-#    TOOLS_TARGET Tools # special case
-#    USER_FACING
-#    SOURCES
-#    source/main.cpp
-#    LIBRARIES # special case
-#    PCTK::Tools # special case
-#    )
+pctk_add_tool(${PCTK_TOOL_NAME}
+    TARGET_DESCRIPTION "PCTK Resource Compiler"
+    TOOLS_TARGET Tools # special case
+    USER_FACING
+    SOURCES
+    source/main.cpp
+    LIBRARIES # special case
+    PCTK::Core
+    PCTK::Tools # special case
+    )

@@ -36,7 +36,7 @@
 # We must pass this function a target name obtained from
 # pctk_get_tool_target_name like this:
 #     pctk_get_tool_target_name(target_name my_tool)
-#     pctk_internal_add_tool(${target_name})
+#     pctk_add_tool(${target_name})
 #
 # Option Arguments:
 #     INSTALL_VERSIONED_LINK
@@ -56,14 +56,8 @@
 #     TOOLS_TARGET
 #         Specifies the module this tool belongs to. The module's PCTK${module}Tools.cmake file
 #         will then contain targets for this tool.
-#     CORE_LIBRARY
-#         The argument accepts 'Bootstrap' or 'None' values. If the argument value is set to
-#         'Bootstrap' the PCTK::Bootstrap library is linked to the executable instead of PCTK::Core.
-#         The 'None' value points that core library is not necessary and avoids linking neither
-#         PCTK::Core or PCTK::Bootstrap libraries. Otherwise the PCTK::Core library will be publicly
-#         linked to the executable target by default.
 #-----------------------------------------------------------------------------------------------------------------------
-function(pctk_internal_add_tool target_name)
+function(pctk_add_tool target_name)
     pctk_tool_target_to_name(name ${target_name})
     set(option_keywords NO_INSTALL USER_FACING INSTALL_VERSIONED_LINK EXCEPTIONS)
     set(one_value_keywords
@@ -75,7 +69,7 @@ function(pctk_internal_add_tool target_name)
         EXTRA_CMAKE_FILES
         EXTRA_CMAKE_INCLUDES
         ${PCTK_DEFAULT_PRIVATE_ARGS})
-    pctk_parse_all_arguments(arg "pctk_internal_add_tool" "${option_keywords}"
+    pctk_parse_all_arguments(arg "pctk_add_tool" "${option_keywords}"
         "${one_value_keywords}"
         "${multi_value_keywords}" ${ARGN})
 
@@ -87,12 +81,12 @@ function(pctk_internal_add_tool target_name)
     endif()
 
     if(PCTK_WILL_RENAME_TOOL_TARGETS AND (name STREQUAL target_name))
-        message(FATAL_ERROR "pctk_internal_add_tool must be passed a target obtained from pctk_get_tool_target_name.")
+        message(FATAL_ERROR "pctk_add_tool must be passed a target obtained from pctk_get_tool_target_name.")
     endif()
 
     set(full_name "${PCTK_CMAKE_EXPORT_NAMESPACE}::${name}")
     set(imported_tool_target_already_found FALSE)
-    message(full_name=${full_name})
+#    message(full_name=${full_name})
     # This condition can only be TRUE if a previous find_package(PCTK${arg_TOOLS_TARGET}Tools) was already done.
     # That can happen if PCTK_FORCE_FIND_TOOLS was ON or we're cross-compiling.
     # In such a case, we need to exit early if we're not going to also build the tools.
@@ -112,9 +106,10 @@ function(pctk_internal_add_tool target_name)
     if(NOT PCTK_WILL_BUILD_TOOLS OR PCTK_WILL_RENAME_TOOL_TARGETS)
         set(search_for_host_package TRUE)
     endif()
-    message(arg_TOOLS_TARGET=${arg_TOOLS_TARGET})
-    message(search_for_host_package=${search_for_host_package})
-    message(imported_tool_target_already_found=${imported_tool_target_already_found})
+#    message(arg_TOOLS_TARGET=${arg_TOOLS_TARGET})
+#    message(search_for_host_package=${search_for_host_package})
+#    message(PCTK_WILL_BUILD_TOOLS=${PCTK_WILL_BUILD_TOOLS})
+#    message(imported_tool_target_already_found=${imported_tool_target_already_found})
     if(search_for_host_package AND NOT imported_tool_target_already_found)
         set(tools_package_name "PCTK${arg_TOOLS_TARGET}")
         message(STATUS "Searching for tool '${full_name}' in package ${tools_package_name}.")
@@ -124,14 +119,13 @@ function(pctk_internal_add_tool target_name)
         set(BACKUP_PCTK_NO_CREATE_TARGETS ${PCTK_NO_CREATE_TARGETS})
         set(PCTK_NO_CREATE_TARGETS OFF)
 
-        # When cross-compiling, we want to search for Tools packages in PCTK_HOST_PATH.
-        # To do that, we override CMAKE_PREFIX_PATH and CMAKE_FIND_ROOT_PATH.
+        # When cross-compiling, we want to search for Tools packages in PCTK_HOST_PATH.  To do that, we override
+        # CMAKE_PREFIX_PATH and CMAKE_FIND_ROOT_PATH.
         #
-        # We don't use find_package + PATHS option because any recursive find_dependency call
-        # inside a Tools package would not inherit the initial PATHS value given.
-        # TODO: Potentially we could set a global __pctk_cmake_host_dir var like we currently
-        # do with _pctk_cmake_dir in PCTKConfig and change all our host tool find_package calls
-        # everywhere to specify that var in PATHS.
+        # We don't use find_package + PATHS option because any recursive find_dependency call  inside a Tools package
+        # would not inherit the initial PATHS value given.
+        # TODO: Potentially we could set a global __pctk_cmake_host_dir var like we currently do with _pctk_cmake_dir
+        # in PCTKConfig and change all our host tool find_package calls everywhere to specify that var in PATHS.
         #
         # Note though that due to path rerooting issue in
         # https://gitlab.kitware.com/cmake/cmake/-/issues/21937
@@ -187,7 +181,7 @@ function(pctk_internal_add_tool target_name)
         if(${${tools_package_name}_FOUND} AND TARGET ${full_name})
             # Even if the tool is already visible, make sure that our modules remain associated
             # with the tools.
-            pctk_internal_append_known_modules_with_tools("${arg_TOOLS_TARGET}")
+            pctk_internal_append_known_libraries_with_tools("${arg_TOOLS_TARGET}")
             get_property(path TARGET ${full_name} PROPERTY LOCATION)
             message(STATUS "${full_name} was found at ${path} using package ${tools_package_name}.")
             if(NOT PCTK_FORCE_BUILD_TOOLS)
@@ -217,13 +211,6 @@ function(pctk_internal_add_tool target_name)
         message(STATUS "Tool '${full_name}' will be built from source.")
     endif()
 
-    set(disable_autogen_tools "${arg_DISABLE_AUTOGEN_TOOLS}")
-    set(corelib "")
-    if(arg_CORE_LIBRARY STREQUAL "Bootstrap" OR arg_CORE_LIBRARY STREQUAL "None")
-        set(corelib CORE_LIBRARY ${arg_CORE_LIBRARY})
-        list(APPEND disable_autogen_tools "rcc")
-    endif()
-
     set(exceptions "")
     if(arg_EXCEPTIONS)
         set(exceptions EXCEPTIONS)
@@ -236,7 +223,8 @@ function(pctk_internal_add_tool target_name)
 
     set(output_dir "${PCTK_BUILD_DIR}/${install_dir}")
 
-    pctk_internal_add_executable("${target_name}"
+#    message(arg_LIBRARIES=${arg_LIBRARIES})
+    pctk_add_executable("${target_name}"
         OUTPUT_DIRECTORY "${output_dir}"
         ${exceptions}
         NO_INSTALL
@@ -246,28 +234,23 @@ function(pctk_internal_add_tool target_name)
         DEFINES
         PCTK_USE_QSTRINGBUILDER
         ${arg_DEFINES}
-        ${corelib}
-        LIBRARIES ${arg_LIBRARIES} PCTK::PlatformToolInternal
+        LIBRARIES ${arg_LIBRARIES}
         COMPILE_OPTIONS ${arg_COMPILE_OPTIONS}
-        LINK_OPTIONS ${arg_LINK_OPTIONS}
-        MOC_OPTIONS ${arg_MOC_OPTIONS}
-        DISABLE_AUTOGEN_TOOLS ${disable_autogen_tools}
         TARGET_VERSION "${arg_TARGET_VERSION}"
         TARGET_PRODUCT "${arg_TARGET_PRODUCT}"
         TARGET_DESCRIPTION "${arg_TARGET_DESCRIPTION}"
         TARGET_COMPANY "${arg_TARGET_COMPANY}"
         TARGET_COPYRIGHT "${arg_TARGET_COPYRIGHT}")
     pctk_internal_add_target_aliases("${target_name}")
-    _pctk_internal_apply_strict_cpp("${target_name}")
+    pctk_internal_apply_strict_cpp("${target_name}")
     pctk_internal_adjust_main_config_runtime_output_dir("${target_name}" "${output_dir}")
 
-    set_target_properties(${target_name} PROPERTIES
-        _pctk_package_version "${PROJECT_VERSION}")
+    set_target_properties(${target_name} PROPERTIES _pctk_package_version "${PROJECT_VERSION}")
     set_property(TARGET ${target_name}
         APPEND PROPERTY
         EXPORT_PROPERTIES "_pctk_package_version")
 
-    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.19.0" AND PCTK_FEATURE_debug_and_release)
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.19.0" AND PCTK_FEATURE_DEBUG_AND_RELEASE)
         set_property(TARGET "${target_name}"
             PROPERTY EXCLUDE_FROM_ALL "$<NOT:$<CONFIG:${PCTK_MULTI_CONFIG_FIRST_CONFIG}>>")
     endif()
@@ -302,15 +285,14 @@ function(pctk_internal_add_tool target_name)
 
     if(NOT arg_NO_INSTALL AND arg_TOOLS_TARGET)
         # Assign a tool to an export set, and mark the module to which the tool belongs.
-        pctk_internal_append_known_modules_with_tools("${arg_TOOLS_TARGET}")
+        pctk_internal_append_known_libraries_with_tools("${arg_TOOLS_TARGET}")
 
         # Also append the tool to the module list.
-        pctk_internal_append_known_module_tool("${arg_TOOLS_TARGET}" "${target_name}")
+        pctk_internal_append_known_library_tool("${arg_TOOLS_TARGET}" "${target_name}")
 
         pctk_get_cmake_configurations(cmake_configs)
 
-        set(install_initial_call_args
-            EXPORT "${INSTALL_CMAKE_NAMESPACE}${arg_TOOLS_TARGET}ToolsTargets")
+        set(install_initial_call_args EXPORT "${INSTALL_CMAKE_NAMESPACE}${arg_TOOLS_TARGET}ToolsTargets")
 
         foreach(cmake_config ${cmake_configs})
             pctk_get_install_target_default_args(
@@ -320,7 +302,7 @@ function(pctk_internal_add_tool target_name)
                 ALL_CMAKE_CONFIGS "${cmake_configs}")
 
             # Make installation optional for targets that are not built by default in this config
-            if(PCTK_FEATURE_debug_and_release
+            if(PCTK_FEATURE_DEBUG_AND_RELEASE
                 AND NOT (cmake_config STREQUAL PCTK_MULTI_CONFIG_FIRST_CONFIG))
                 set(install_optional_arg OPTIONAL)
             else()
@@ -348,12 +330,44 @@ function(pctk_internal_add_tool target_name)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
 # Returns the tool name for a given tool target.
 # This is the inverse of pctk_get_tool_target_name.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_tool_target_to_name out_var target)
     set(name ${target})
     if(PCTK_WILL_RENAME_TOOL_TARGETS)
         string(REGEX REPLACE "_native$" "" name ${target})
     endif()
     set(${out_var} ${name} PARENT_SCOPE)
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+# Sets PCTK_WILL_BUILD_TOOLS if tools will be built and PCTK_WILL_RENAME_TOOL_TARGETS
+# if those tools have replaced naming.
+function(pctk_check_if_tools_will_be_built)
+    # By default, we build our own tools unless we're cross-building.
+    set(need_target_rename FALSE)
+    if(CMAKE_CROSSCOMPILING)
+        set(will_build_tools FALSE)
+        if(PCTK_FORCE_BUILD_TOOLS)
+            set(will_build_tools TRUE)
+            set(need_target_rename TRUE)
+        endif()
+    else()
+        set(will_build_tools TRUE)
+        if(PCTK_FORCE_FIND_TOOLS)
+            set(will_build_tools FALSE)
+            if(PCTK_FORCE_BUILD_TOOLS)
+                set(will_build_tools TRUE)
+                set(need_target_rename TRUE)
+            endif()
+        endif()
+    endif()
+
+    set(PCTK_WILL_BUILD_TOOLS ${will_build_tools} CACHE INTERNAL "Are tools going to be built" FORCE)
+    set(PCTK_WILL_RENAME_TOOL_TARGETS ${need_target_rename} CACHE INTERNAL
+        "Do tool targets need to be renamed" FORCE)
 endfunction()

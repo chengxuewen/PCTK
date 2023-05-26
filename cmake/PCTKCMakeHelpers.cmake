@@ -411,3 +411,24 @@ function(pctk_internal_write_pctk_package_version_file package_name out_path)
     configure_file("${PCTK_CMAKE_DIR}/PCTKCMakePackageVersionFile.cmake.in" "${out_path}" @ONLY)
 endfunction()
 
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Input: string
+# Output: regex string to match the string case insensitively
+# Example: "Release" -> "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$"
+#
+# Regular expressions like this are used in cmake_install.cmake files for case-insensitive string comparison.
+#-----------------------------------------------------------------------------------------------------------------------
+function(pctk_create_case_insensitive_regex out_var input)
+    set(result "^(")
+    string(LENGTH "${input}" n)
+    math(EXPR n "${n} - 1")
+    foreach(i RANGE 0 ${n})
+        string(SUBSTRING "${input}" ${i} 1 c)
+        string(TOUPPER "${c}" uc)
+        string(TOLOWER "${c}" lc)
+        string(APPEND result "[${uc}${lc}]")
+    endforeach()
+    string(APPEND result ")$")
+    set(${out_var} "${result}" PARENT_SCOPE)
+endfunction()
