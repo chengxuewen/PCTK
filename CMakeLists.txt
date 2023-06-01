@@ -31,7 +31,7 @@ message(STATUS "====================================PCTK========================
 #-----------------------------------------------------------------------------------------------------------------------
 # Set cmake min version and policy
 #-----------------------------------------------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.19)
 cmake_policy(SET CMP0075 NEW) # use CMAKE_REQUIRED_LIBRARIES
 
 
@@ -307,6 +307,7 @@ include(PCTKPublicDependencyHelpers)
 #include(PCTKPublicToolHelpers)
 
 
+set(INPUT_PCTK_FEATURE_STDCXX_ATOMIC OFF)
 #-----------------------------------------------------------------------------------------------------------------------
 # Set build options
 #-----------------------------------------------------------------------------------------------------------------------
@@ -499,9 +500,6 @@ include(PCTKPlatformSupport)
 # Set namespace and separator
 #-----------------------------------------------------------------------------------------------------------------------
 set(PCTK_NAMESPACE_VERSION ${PCTK_VERSION_MAJOR})
-if(0 EQUAL ${PCTK_VERSION_MAJOR})
-    set(PCTK_NAMESPACE_VERSION "")
-endif()
 set(PCTK_NAMESPACE "" CACHE STRING "PCTK Namespace")
 if(NOT INSTALL_CMAKE_NAMESPACE)
     set(INSTALL_CMAKE_NAMESPACE "PCTK${PCTK_NAMESPACE_VERSION}"

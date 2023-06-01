@@ -45,16 +45,14 @@ function(pctk_internal_extend_target target)
 
         # Set-up the target
 
-        # CMake versions less than 3.19 don't support adding the source files to the PRIVATE scope
-        # of the INTERFACE libraries. These PRIVATE sources are only needed by IDEs to display
-        # them in a project tree, so to avoid build issues and appearing the sources in
-        # INTERFACE_SOURCES property of HEADER_LIBRARY let's simply exclude them for compatibility
-        # with CMake versions less than 3.19.
+        # CMake versions less than 3.19 don't support adding the source files to the PRIVATE scope  of the INTERFACE
+        # libraries. These PRIVATE sources are only needed by IDEs to display them in a project tree, so to avoid
+        # build issues and appearing the sources in INTERFACE_SOURCES property of HEADER_LIBRARY let's simply exclude
+        # them for compatibility with CMake versions less than 3.19.
         if(NOT arg_HEADER_LIBRARY OR CMAKE_VERSION VERSION_GREATER_EQUAL "3.19")
-            target_sources("${target}" PRIVATE ${arg_SOURCES} ${dbus_sources})
+            target_sources("${target}" PRIVATE ${arg_SOURCES})
             if(arg_COMPILE_FLAGS)
-                set_source_files_properties(${arg_SOURCES} PROPERTIES
-                    COMPILE_FLAGS "${arg_COMPILE_FLAGS}")
+                set_source_files_properties(${arg_SOURCES} PROPERTIES COMPILE_FLAGS "${arg_COMPILE_FLAGS}")
             endif()
         endif()
 

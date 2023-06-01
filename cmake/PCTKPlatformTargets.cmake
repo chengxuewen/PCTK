@@ -1,5 +1,8 @@
+
+#-----------------------------------------------------------------------------------------------------------------------
 # Defines the public PCTK::platform target, which serves as a dependency for all internal PCTK target
 # as well as user projects consuming PCTK.
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_setup_public_platform_target)
     pctk_internal_get_platform_definition_include_dir(
         install_interface_definition_dir
@@ -58,6 +61,8 @@ function(pctk_internal_setup_public_platform_target)
 endfunction()
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 function(pctk_internal_get_platform_definition_include_dir install_interface build_interface)
     # Used by consumers of prefix builds via INSTALL_INTERFACE (relative path).
     #    set(${install_interface} "${INSTALL_MKSPECSDIR}/${PCTK_QMAKE_TARGET_MKSPEC}" PARENT_SCOPE)
@@ -73,6 +78,3 @@ function(pctk_internal_get_platform_definition_include_dir install_interface bui
     #    get_filename_component(build_interface_dir "${build_interface_base_dir}/${PCTK_QMAKE_TARGET_MKSPEC}" ABSOLUTE)
     set(${build_interface} "${build_interface_dir}" PARENT_SCOPE)
 endfunction()
-
-
-pctk_internal_setup_public_platform_target()

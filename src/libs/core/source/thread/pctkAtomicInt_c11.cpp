@@ -24,7 +24,7 @@
 
 #include <pctkAtomicInt.h>
 
-#include <atomic>
+#include <stdatomic.h>
 
 PCTK_BEGIN_NAMESPACE
 
@@ -35,7 +35,8 @@ public:
     virtual ~AtomicIntPrivate();
 
     AtomicInt *const q_ptr;
-    std::atomic_int m_value;
+
+    _Atomic int m_value;
 
 private:
     PCTK_DECL_PUBLIC(AtomicInt)
@@ -58,13 +59,13 @@ AtomicInt::AtomicInt() PCTK_NOEXCEPT
 AtomicInt::AtomicInt(int val) PCTK_NOEXCEPT
     : dd_ptr(new AtomicIntPrivate(this))
 {
-    dd_ptr->m_value.store(val, std::memory_order_release);
+    atomic_store_explicit(&dd_ptr->m_value, val, memory_order_relaxed);
 }
 
 AtomicInt::AtomicInt(const AtomicInt &other) PCTK_NOEXCEPT
     : dd_ptr(new AtomicIntPrivate(this))
 {
-    dd_ptr->m_value.store(other.dd_ptr->m_value.load(std::memory_order_acquire), std::memory_order_release);
+    atomic_store_explicit(&dd_ptr->m_value, other.load(), memory_order_relaxed);
 }
 AtomicInt::~AtomicInt()
 {
@@ -74,205 +75,221 @@ AtomicInt::~AtomicInt()
 bool AtomicInt::ref() PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_add(1, std::memory_order_acq_rel) != -1;
+    return atomic_fetch_add_explicit(&dd_ptr->m_value, 1, memory_order_acq_rel) != -1;
 }
 
 bool AtomicInt::deref() PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_sub(1, std::memory_order_acq_rel) != 1;
+    return atomic_fetch_sub_explicit(&dd_ptr->m_value, 1, memory_order_acq_rel) != 1;
 }
 
 int AtomicInt::load() const PCTK_NOEXCEPT
 {
     PCTK_D(const AtomicInt);
-    return dd_ptr->m_value.load(std::memory_order_relaxed);
+    return atomic_load_explicit(&dd_ptr->m_value, memory_order_relaxed);
 }
 
 int AtomicInt::loadAcquire() const PCTK_NOEXCEPT
 {
     PCTK_D(const AtomicInt);
-    return dd_ptr->m_value.load(std::memory_order_acquire);
+    return atomic_load_explicit(&dd_ptr->m_value, memory_order_acquire);
 }
 
 void AtomicInt::store(int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    dd_ptr->m_value.store(desired, std::memory_order_relaxed);
+    atomic_store_explicit(&dd_ptr->m_value, desired, memory_order_relaxed);
 }
 
 void AtomicInt::storeRelease(int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    dd_ptr->m_value.store(desired, std::memory_order_release);
+    atomic_store_explicit(&dd_ptr->m_value, desired, memory_order_release);
 }
 
 bool AtomicInt::testAndSetRelaxed(int expected, int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.compare_exchange_strong(expected, desired, std::memory_order_relaxed, std::memory_order_relaxed);
+    return atomic_compare_exchange_strong_explicit(&dd_ptr->m_value,
+                                                   &expected,
+                                                   desired,
+                                                   memory_order_relaxed,
+                                                   memory_order_relaxed);
 }
 
 bool AtomicInt::testAndSetAcquire(int expected, int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.compare_exchange_strong(expected, desired, std::memory_order_acquire, std::memory_order_acquire);
+    return atomic_compare_exchange_strong_explicit(&dd_ptr->m_value,
+                                                   &expected,
+                                                   desired,
+                                                   memory_order_acquire,
+                                                   memory_order_acquire);
 }
 
 bool AtomicInt::testAndSetRelease(int expected, int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.compare_exchange_strong(expected, desired, std::memory_order_release, std::memory_order_relaxed);
+    return atomic_compare_exchange_strong_explicit(&dd_ptr->m_value,
+                                                   &expected,
+                                                   desired,
+                                                   memory_order_release,
+                                                   memory_order_relaxed);
 }
 
 bool AtomicInt::testAndSetOrdered(int expected, int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire);
+    return atomic_compare_exchange_strong_explicit(&dd_ptr->m_value,
+                                                   &expected,
+                                                   desired,
+                                                   memory_order_acq_rel,
+                                                   memory_order_acquire);
 }
 
 int AtomicInt::fetchAndStoreRelaxed(int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.exchange(desired, std::memory_order_relaxed);
+    return atomic_exchange_explicit(&dd_ptr->m_value, desired, memory_order_relaxed);
 }
 
 int AtomicInt::fetchAndStoreAcquire(int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.exchange(desired, std::memory_order_acquire);
+    return atomic_exchange_explicit(&dd_ptr->m_value, desired, memory_order_acquire);
 }
 
 int AtomicInt::fetchAndStoreRelease(int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.exchange(desired, std::memory_order_release);
+    return atomic_exchange_explicit(&dd_ptr->m_value, desired, memory_order_release);
 }
 
 int AtomicInt::fetchAndStoreOrdered(int desired) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.exchange(desired, std::memory_order_acq_rel);
+    return atomic_exchange_explicit(&dd_ptr->m_value, desired, memory_order_acq_rel);
 }
 
 int AtomicInt::fetchAndAddRelaxed(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_add(arg, std::memory_order_relaxed);
+    return atomic_fetch_add_explicit(&dd_ptr->m_value, arg, memory_order_relaxed);
 }
 
 int AtomicInt::fetchAndAddAcquire(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_add(arg, std::memory_order_acquire);
+    return atomic_fetch_add_explicit(&dd_ptr->m_value, arg, memory_order_acquire);
 }
 
 int AtomicInt::fetchAndAddRelease(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_add(arg, std::memory_order_release);
+    return atomic_fetch_add_explicit(&dd_ptr->m_value, arg, memory_order_release);
 }
 
 int AtomicInt::fetchAndAddOrdered(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_add(arg, std::memory_order_acq_rel);
+    return atomic_fetch_add_explicit(&dd_ptr->m_value, arg, memory_order_acq_rel);
 }
 
 int AtomicInt::fetchAndSubRelaxed(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_sub(arg, std::memory_order_relaxed);
+    return atomic_fetch_sub_explicit(&dd_ptr->m_value, arg, memory_order_relaxed);
 }
 
 int AtomicInt::fetchAndSubAcquire(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_sub(arg, std::memory_order_acquire);
+    return atomic_fetch_sub_explicit(&dd_ptr->m_value, arg, memory_order_acquire);
 }
 
 int AtomicInt::fetchAndSubRelease(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_sub(arg, std::memory_order_release);
+    return atomic_fetch_sub_explicit(&dd_ptr->m_value, arg, memory_order_release);
 }
 
 int AtomicInt::fetchAndSubOrdered(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_sub(arg, std::memory_order_acq_rel);
+    return atomic_fetch_sub_explicit(&dd_ptr->m_value, arg, memory_order_acq_rel);
 }
 
 int AtomicInt::fetchAndOrRelaxed(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_or(arg, std::memory_order_relaxed);
+    return atomic_fetch_or_explicit(&dd_ptr->m_value, arg, memory_order_relaxed);
 }
 
 int AtomicInt::fetchAndOrAcquire(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_or(arg, std::memory_order_acquire);
+    return atomic_fetch_or_explicit(&dd_ptr->m_value, arg, memory_order_acquire);
 }
 
 int AtomicInt::fetchAndOrRelease(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_or(arg, std::memory_order_release);
+    return atomic_fetch_or_explicit(&dd_ptr->m_value, arg, memory_order_release);
 }
 
 int AtomicInt::fetchAndOrOrdered(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_or(arg, std::memory_order_acq_rel);
+    return atomic_fetch_or_explicit(&dd_ptr->m_value, arg, memory_order_acq_rel);
 }
 
 int AtomicInt::fetchAndAndRelaxed(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_and(arg, std::memory_order_relaxed);
+    return atomic_fetch_and_explicit(&dd_ptr->m_value, arg, memory_order_relaxed);
 }
 
 int AtomicInt::fetchAndAndAcquire(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_and(arg, std::memory_order_acquire);
+    return atomic_fetch_and_explicit(&dd_ptr->m_value, arg, memory_order_acquire);
 }
 
 int AtomicInt::fetchAndAndRelease(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_and(arg, std::memory_order_release);
+    return atomic_fetch_and_explicit(&dd_ptr->m_value, arg, memory_order_release);
 }
 
 int AtomicInt::fetchAndAndOrdered(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_and(arg, std::memory_order_acq_rel);
+    return atomic_fetch_and_explicit(&dd_ptr->m_value, arg, memory_order_acq_rel);
 }
 
 int AtomicInt::fetchAndXorRelaxed(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_xor(arg, std::memory_order_relaxed);
+    return atomic_fetch_xor_explicit(&dd_ptr->m_value, arg, memory_order_relaxed);
 }
 
 int AtomicInt::fetchAndXorAcquire(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_xor(arg, std::memory_order_acquire);
+    return atomic_fetch_xor_explicit(&dd_ptr->m_value, arg, memory_order_acquire);
 }
 
 int AtomicInt::fetchAndXorRelease(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_xor(arg, std::memory_order_release);
+    return atomic_fetch_xor_explicit(&dd_ptr->m_value, arg, memory_order_release);
 }
 
 int AtomicInt::fetchAndXorOrdered(int arg) PCTK_NOEXCEPT
 {
     PCTK_D(AtomicInt);
-    return d->m_value.fetch_xor(arg, std::memory_order_acq_rel);
+    return atomic_fetch_xor_explicit(&dd_ptr->m_value, arg, memory_order_acq_rel);
 }
 
 PCTK_END_NAMESPACE

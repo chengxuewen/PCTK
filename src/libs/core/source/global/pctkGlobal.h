@@ -22,8 +22,8 @@
 **
 ***********************************************************************************************************************/
 
-#ifndef _PCTKGLOBAL_H_
-#define _PCTKGLOBAL_H_
+#ifndef _PCTKGLOBAL_H
+#define _PCTKGLOBAL_H
 
 #include <pctkMacros.h>
 #include <pctkLimits.h>
@@ -40,9 +40,9 @@
  */
 
 
-/********************************************************************************
+/***********************************************************************************************************************
    PCTK Compiler specific cmds for export and import code to DLL
-********************************************************************************/
+***********************************************************************************************************************/
 #ifdef PCTK_SHARED /* compiled as a dynamic lib. */
 #   ifdef PCTK_BUILD_CORE_LIB    /* defined if we are building the lib */
 #       define PCTK_CORE_API PCTK_DECL_EXPORT
@@ -57,4 +57,4 @@
 
 #define PCTK_CORE_NAME "PCTKCore"
 
-#endif //_PCTKGLOBAL_H_
+#endif //_PCTKGLOBAL_H

@@ -22,8 +22,8 @@
 **
 ***********************************************************************************************************************/
 
-#ifndef _PCTKCOMPILER_H_
-#define _PCTKCOMPILER_H_
+#ifndef _PCTKCOMPILER_H
+#define _PCTKCOMPILER_H
 
 #include <pctkPreprocessor.h>
 #include <pctkSystem.h>
@@ -774,4 +774,4 @@
 #   define PCTK_CC_FEATURE_VARIADIC_TEMPLATES 0
 #endif
 
-#endif //_PCTKCOMPILER_H_
+#endif //_PCTKCOMPILER_H

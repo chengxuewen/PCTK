@@ -99,13 +99,24 @@ pctk_add_library(${PCTK_LIB_NAME}
     source/plugin/pctkSharedLibrary.h
     source/plugin/pctkSharedLibrary_p.h
     source/thread/pctkAtomicInt.h
-    source/thread/pctkAtomicInt_p.h
     source/tools/pctkError.cpp
     source/tools/pctkError.h
     PRECOMPILED_HEADER
     "source/pctkCorePch.h"
     LIBRARIES
     ${PCTK_LIB_LINK_LIBRARIES})
+
+pctk_internal_extend_target(${PCTK_LIB_NAME} CONDITION PCTK_FEATURE_STDCXX_ATOMIC
+    SOURCES source/thread/pctkAtomicInt_cxx11.cpp)
+pctk_internal_extend_target(${PCTK_LIB_NAME} CONDITION PCTK_FEATURE_STDC_ATOMIC
+    SOURCES source/thread/pctkAtomicInt_c11.cpp)
+pctk_internal_extend_target(${PCTK_LIB_NAME} CONDITION PCTK_CXX_COMPILER_GCC
+    SOURCES source/thread/pctkAtomicInt_gcc.cpp)
+pctk_internal_extend_target(${PCTK_LIB_NAME} CONDITION PCTK_CXX_COMPILER_MSVC
+    SOURCES source/thread/pctkAtomicInt_msvc.cpp)
+pctk_internal_extend_target(${PCTK_LIB_NAME}
+    CONDITION UNIX AND (NOT PCTK_FEATURE_STDCXX_ATOMIC) AND (NOT PCTK_FEATURE_STDC_ATOMIC) AND (NOT PCTK_CXX_COMPILER_GCC)
+    SOURCES source/thread/pctkAtomicInt_unix.cpp)
 
 
 #-----------------------------------------------------------------------------------------------------------------------

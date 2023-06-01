@@ -56,24 +56,38 @@ pctk_configure_feature("ICU" PUBLIC
     AUTODETECT NOT WIN32
     CONDITION ICU_FOUND)
 
+# std cxx atomics
+pctk_configure_compile_test(STDCXX_ATOMIC
+    LABEL "Check standard cxx atomic"
+    CODE
+    "#include <atomic>
+     int main(void)
+     {
+        std::atomic<bool> ato;
+        return 0;
+     }")
+pctk_configure_feature("STDCXX_ATOMIC" PUBLIC
+    LABEL "Use standard cxx atomic"
+    AUTODETECT TEST_STDCXX_ATOMIC
+    CONDITION TEST_STDCXX_ATOMIC)
 
-# std atomics
-pctk_configure_compile_test(STD_ATOMIC
+# std c atomics
+pctk_configure_compile_test(STDC_ATOMIC
     LABEL "Check standard c atomic"
     CODE
     "#include <stdatomic.h>
-         #if defined(__STDC_NO_ATOMICS__) || __STDC_NO_ATOMICS__
-         #   error \"no stdc atomics\"
-         #endif
-         int main(void)
-         {
-         _Atomic int value;
-         return 0;
-         }")
-pctk_configure_feature("STD_ATOMIC" PUBLIC
+     #if defined(__STDC_NO_ATOMICS__) || __STDC_NO_ATOMICS__
+     #   error \"no stdc atomics\"
+     #endif
+     int main(void)
+     {
+        _Atomic int value;
+        return 0;
+     }")
+pctk_configure_feature("STDC_ATOMIC" PUBLIC
     LABEL "Use standard c atomic"
-    AUTODETECT ${TEST_STD_ATOMIC}
-    CONDITION ${TEST_STD_ATOMIC})
+    AUTODETECT TEST_STDC_ATOMIC AND (NOT PCTK_FEATURE_STDCXX_ATOMIC)
+    CONDITION TEST_STDC_ATOMIC)
 
 
 # std threads
@@ -82,25 +96,43 @@ find_package(Threads REQUIRED)
 set(PCTK_BUILD_WITH_THREAD ${Threads_FOUND})
 set(PCTK_BUILD_USE_PTHREADS ${CMAKE_USE_PTHREADS_INIT})
 set(PCTK_BUILD_USE_WIN32_THREADS ${CMAKE_USE_WIN32_THREADS_INIT})
-pctk_configure_compile_test(STD_THREAD
+
+pctk_configure_compile_test(STDCXX_THREAD
+    LABEL "Check standard cxx thread"
+    CODE
+    "#include <thread>
+     #include <mutex>
+     int main(void)
+     {
+        std::thread trd；
+        std::future fue;
+        std::mutex mux;
+        return 0;
+     }")
+pctk_configure_feature("STDCXX_THREAD" PUBLIC
+    LABEL "Use standard cxx thread"
+    AUTODETECT TEST_STDCXX_THREAD
+    CONDITION TEST_STDCXX_THREAD)
+
+pctk_configure_compile_test(STDC_THREAD
     LABEL "Check standard c thread"
     CODE
     "#include <threads.h>
-         #if defined(__STDC_NO_THREADS__) || __STDC_NO_THREADS__
-         #   error \"no stdc threads\"
-         #endif
-         int main(void)
-         {
-         cnd_t cond;
-         mtx_t mutex;
-         tss_t key;
-         thrd_t thread;
-         return 0;
-         }")
-pctk_configure_feature("STD_THREAD" PUBLIC
+     #if defined(__STDC_NO_THREADS__) || __STDC_NO_THREADS__
+     #   error \"no stdc threads\"
+     #endif
+     int main(void)
+     {
+        cnd_t cond;
+        mtx_t mutex;
+        tss_t key;
+        thrd_t thread;
+        return 0;
+     }")
+pctk_configure_feature("STDC_THREAD" PUBLIC
     LABEL "Use standard c thread"
-    AUTODETECT ${TEST_STD_THREAD}
-    CONDITION ${TEST_STD_THREAD})
+    AUTODETECT TEST_STDC_THREAD AND (NOT TEST_STDCXX_THREAD)
+    CONDITION TEST_STDC_THREAD)
 
 
 # std time
@@ -119,8 +151,8 @@ pctk_configure_compile_test(STD_TIME
          }")
 pctk_configure_feature("STD_TIME" PUBLIC
     LABEL "Use standard c time"
-    AUTODETECT ${TEST_STD_TIME}
-    CONDITION ${TEST_STD_TIME})
+    AUTODETECT TEST_STD_TIME
+    CONDITION TEST_STD_TIME)
 
 
 pctk_configure_feature("TIMEZONE" PUBLIC

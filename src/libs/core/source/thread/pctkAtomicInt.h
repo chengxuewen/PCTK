@@ -36,7 +36,7 @@ public:
     AtomicInt() PCTK_NOEXCEPT;
     explicit AtomicInt(int val) PCTK_NOEXCEPT;
     AtomicInt(const AtomicInt &other) PCTK_NOEXCEPT;
-    virtual ~AtomicInt() { delete dd_ptr; }
+    virtual ~AtomicInt();
 
     /**
      * @brief operator int
@@ -197,144 +197,144 @@ public:
 
     /**
      * @brief fetchAndAddRelaxed
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndAddRelaxed(int desired) PCTK_NOEXCEPT;
+    int fetchAndAddRelaxed(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndAddAcquire
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndAddAcquire(int desired) PCTK_NOEXCEPT;
+    int fetchAndAddAcquire(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndAddRelease
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndAddRelease(int desired) PCTK_NOEXCEPT;
+    int fetchAndAddRelease(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndAddOrdered
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndAddOrdered(int desired) PCTK_NOEXCEPT;
+    int fetchAndAddOrdered(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndSubRelaxed
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndSubRelaxed(int desired) PCTK_NOEXCEPT;
+    int fetchAndSubRelaxed(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndSubAcquire
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndSubAcquire(int desired) PCTK_NOEXCEPT;
+    int fetchAndSubAcquire(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndSubRelease
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndSubRelease(int desired) PCTK_NOEXCEPT;
+    int fetchAndSubRelease(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndSubOrdered
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndSubOrdered(int desired) PCTK_NOEXCEPT;
+    int fetchAndSubOrdered(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndOrRelaxed
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndOrRelaxed(int desired) PCTK_NOEXCEPT;
+    int fetchAndOrRelaxed(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndOrAcquire
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndOrAcquire(int desired) PCTK_NOEXCEPT;
+    int fetchAndOrAcquire(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndOrRelease
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndOrRelease(int desired) PCTK_NOEXCEPT;
+    int fetchAndOrRelease(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndOrOrdered
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndOrOrdered(int desired) PCTK_NOEXCEPT;
+    int fetchAndOrOrdered(int arg) PCTK_NOEXCEPT;
 
     /**
-     * @brief fetch_and_and_relaxed
-     * @param desired
+     * @brief fetchAndAndRelaxed
+     * @param arg
      * @return
      */
 
-    int fetch_and_and_relaxed(int desired) PCTK_NOEXCEPT;
-
-    /**
-     * @brief fetch_and_and_acquire
-     * @param desired
-     * @return
-     */
-    int fetch_and_and_acquire(int desired) PCTK_NOEXCEPT;
+    int fetchAndAndRelaxed(int arg) PCTK_NOEXCEPT;
 
     /**
-     * @brief fetch_and_and_release
-     * @param desired
+     * @brief fetchAndAndAcquire
+     * @param arg
      * @return
      */
-    int fetch_and_and_release(int desired) PCTK_NOEXCEPT;
+    int fetchAndAndAcquire(int arg) PCTK_NOEXCEPT;
+
+    /**
+     * @brief fetchAndAndRelease
+     * @param arg
+     * @return
+     */
+    int fetchAndAndRelease(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndAndOrdered
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndAndOrdered(int desired) PCTK_NOEXCEPT;
+    int fetchAndAndOrdered(int arg) PCTK_NOEXCEPT;
 
     /**
-     * @brief fetch_and_xor_relaxed
-     * @param desired
+     * @brief fetchAndXorRelaxed
+     * @param arg
      * @return
      */
-    int fetch_and_xor_relaxed(int desired) PCTK_NOEXCEPT;
+    int fetchAndXorRelaxed(int arg) PCTK_NOEXCEPT;
 
     /**
-     * @brief fetch_and_xor_acquire
-     * @param desired
+     * @brief fetchAndXorAcquire
+     * @param arg
      * @return
      */
-    int fetch_and_xor_acquire(int desired) PCTK_NOEXCEPT;
+    int fetchAndXorAcquire(int arg) PCTK_NOEXCEPT;
 
     /**
-     * @brief fetch_and_xor_release
-     * @param desired
+     * @brief fetchAndXorRelease
+     * @param arg
      * @return
      */
-    int fetch_and_xor_release(int desired) PCTK_NOEXCEPT;
+    int fetchAndXorRelease(int arg) PCTK_NOEXCEPT;
 
     /**
      * @brief fetchAndXorOrdered
-     * @param desired
+     * @param arg
      * @return
      */
-    int fetchAndXorOrdered(int desired) PCTK_NOEXCEPT;
+    int fetchAndXorOrdered(int arg) PCTK_NOEXCEPT;
 
 protected:
     AtomicIntPrivate *dd_ptr;
