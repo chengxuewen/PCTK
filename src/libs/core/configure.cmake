@@ -791,3 +791,6 @@ pctk_configure_definition("PCTK_SIZET_IS_LONG_LONG_TYPE" PUBLIC VALUE ${TEST_SIZ
 include(TestBigEndian)
 test_big_endian(PCTK_IS_BIG_ENDIAN)
 pctk_configure_definition("PCTK_IS_BIG_ENDIAN" PUBLIC VALUE ${PCTK_IS_BIG_ENDIAN})
+
+pctk_find_package(WrapLibffi PROVIDED_TARGETS WrapLibffi::WrapLibffi MODULE_NAME PCTKCore)
+pctk_find_package(WrapCppUTest PROVIDED_TARGETS WrapCppUTest::WrapCppUTest MODULE_NAME PCTKCore)

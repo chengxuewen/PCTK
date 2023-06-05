@@ -291,6 +291,7 @@ include(PCTKToolHelpers)
 #include(PCTKJavaHelpers)
 if(ANDROID)
     include(PCTKAndroidHelpers)
+    include(PCTKPlatformAndroid)
 endif()
 if(WASM)
     include(PCTKWasmHelpers)
@@ -321,7 +322,7 @@ pctk_option(PCTK_BUILD_WARNINGS_ARE_ERRORS "Build PCTK with warnings as errors" 
 pctk_option(PCTK_BUILD_BENCHMARKS "Enable this to build the benchmarks" ${__pctk_build_benchmarks}
     SET __pctk_build_tests_default)
 pctk_option(PCTK_BUILD_EXAMPLES "Enable this to build examples" ON)
-pctk_option(PCTK_BUILD_TESTS "Enable this to build tests" OFF)
+pctk_option(PCTK_BUILD_TESTS "Enable this to build tests" ON)
 pctk_option(PCTK_BUILD_MINIMAL_STATIC_TESTS "Build minimal subset of tests for static PCTK builds" ON)
 pctk_option(PCTK_BUILD_PLUGINS "Enable this to build the plugins." ON)
 pctk_option(PCTK_BUILD_TOOLS "Enable this to build the tools." "${__pctk_build_tools_default}")
@@ -489,6 +490,9 @@ function(pctk_setup_tool_path_command)
 endfunction()
 pctk_setup_tool_path_command()
 
+include(CTest)
+enable_testing()
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Set platform and mkspecs define
@@ -521,6 +525,11 @@ else()
     set(PCTK_PATH_SEPARATOR ":")
 endif()
 
+# Save the value of the current first project source dir.
+# This will be /path/to/PCTKCore for PCTKCore both in a super-build and a non super-build.
+# This will be /path/to/PCTKCore/tests when building standalone tests.
+set(PCTK_TOP_LEVEL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Prevent warnings about object files without any symbols. This is a common thing in PCTK as we tend to build files
@@ -534,7 +543,6 @@ if(CMAKE_HOST_APPLE AND APPLE)
         set(CMAKE_${lang}_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols <TARGET>")
     endforeach()
 endif()
-
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -623,8 +631,3 @@ pctk_add_subdirectory(src/bundles TARGET Osgi)
 #pctk_build_repo_end()
 
 #pctk_internal_create_depends_files()
-if(PCTK_BUILD_TESTS)
-    include(CTest)
-    enable_testing()
-    add_subdirectory(3rdparty/cpputest-4.0)
-endif()

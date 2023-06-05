@@ -26,4 +26,9 @@
 #
 ########################################################################################################################
 
-add_subdirectory(tools)
+
+pctk_internal_add_test(pctk_tst_core_flags
+    SOURCES
+    tst_flags.cpp
+    LIBRARIES
+    WrapCppUTest::WrapCppUTest)

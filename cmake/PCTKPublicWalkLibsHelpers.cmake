@@ -1,9 +1,21 @@
 
-# Walks a target's public link libraries recursively, and performs some actions (poor man's
-# polypmorphism)
+#-----------------------------------------------------------------------------------------------------------------------
+# Add libraries to variable ${out_libs_var} in a way that duplicates are added at the end. This ensures the library
+# order needed for the linker.
+#-----------------------------------------------------------------------------------------------------------------------
+function(__pctk_internal_merge_libs out_libs_var)
+    foreach(dep ${ARGN})
+        list(REMOVE_ITEM ${out_libs_var} ${dep})
+        list(APPEND ${out_libs_var} ${dep})
+    endforeach()
+    set(${out_libs_var} ${${out_libs_var}} PARENT_SCOPE)
+endfunction()
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Walks a target's public link libraries recursively, and performs some actions (poor man's polypmorphism)
 #
-# Walks INTERFACE_LINK_LIBRARIES for all target types, as well as LINK_LIBRARIES for static
-# library targets.
+# Walks INTERFACE_LINK_LIBRARIES for all target types, as well as LINK_LIBRARIES for static library targets.
 #
 # out_var: the name of the variable where the result will be assigned. The result is a list of
 #          libraries, mostly in generator expression form.
@@ -19,7 +31,7 @@
 #            'direct_targets' collects only the direct target names (discards framework or link
 #                             flags)
 #
-#
+#-----------------------------------------------------------------------------------------------------------------------
 function(__pctk_internal_walk_libs target out_var rcc_objects_out_var dict_name operation)
     set(collected ${ARGN})
     if(target IN_LIST collected)
