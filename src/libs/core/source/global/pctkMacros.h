@@ -111,19 +111,19 @@ namespace PCTK_NAMESPACE {}
 #define PCTK_NOTHROW PCTK_NOEXCEPT
 
 #if PCTK_CC_FEATURE_DEFAULT_MEMBERS
-#   define PCTK_EQ_DEFAULT = default
-#   define PCTK_EQ_DEFAULT_FUNC = default;
+#   define PCTK_EPCTK_DEFAULT = default
+#   define PCTK_EPCTK_DEFAULT_FUNC = default;
 #else
-#   define PCTK_EQ_DEFAULT
-#   define PCTK_EQ_DEFAULT_FUNC {}
+#   define PCTK_EPCTK_DEFAULT
+#   define PCTK_EPCTK_DEFAULT_FUNC {}
 #endif
 
 #if PCTK_CC_FEATURE_DELETE_MEMBERS
-#   define PCTK_EQ_DELETE = delete
-#   define PCTK_EQ_DELETE_FUNC = delete;
+#   define PCTK_EPCTK_DELETE = delete
+#   define PCTK_EPCTK_DELETE_FUNC = delete;
 #else
-#   define PCTK_EQ_DELETE
-#   define PCTK_EQ_DELETE_FUNC {}
+#   define PCTK_EPCTK_DELETE
+#   define PCTK_EPCTK_DELETE_FUNC {}
 #endif
 
 #if PCTK_CC_FEATURE_ALIGNOF
@@ -150,20 +150,40 @@ struct AlignmentDummy { char header; T data; }; PCTK_END_NAMESPACE
 #   define PCTK_ALIGN(n)
 #endif
 
+#if defined(__cplusplus)
+// Don't use these in C++ mode, use static_assert directly.
+// These are here only to keep old code compiling.
+#   define PCTK_STATIC_ASSERT(condition) static_assert(bool(condition), #condition)
+#   define PCTK_STATIC_ASSERT_X(condition, message) static_assert(bool(condition), message)
+#elif defined(PCTK_COMPILER_STATIC_ASSERT)
+// C11 mode - using the _S version in case <assert.h> doesn't do the right thing
+#   define PCTK_STATIC_ASSERT(condition) _Static_assert(!!(condition), #condition)
+#   define PCTK_STATIC_ASSERT_X(condition, message) _Static_assert(!!(condition), message)
+#else // C89 & C99 version
+#   ifdef __COUNTER__
+#       define PCTK_STATIC_ASSERT(condition) \
+            typedef char PCTK_PP_CONCAT(pctk_static_assert_result, __COUNTER__) [(condition) ? 1 : -1];
+#   else
+#       define PCTK_STATIC_ASSERT(condition) \
+            typedef char PCTK_PP_CONCAT(pctk_static_assert_result, __LINE__) [(condition) ? 1 : -1];
+#   endif /* __COUNTER__ */
+#   define PCTK_STATIC_ASSERT_X(condition, message) PCTK_STATIC_ASSERT(condition)
+#endif
+
 
 /***********************************************************************************************************************
     PCTK disable copy move macro declare
 ***********************************************************************************************************************/
 // disable copy macro define
 #define PCTK_DISABLE_COPY(class_name) \
-    class_name(const class_name &) PCTK_EQ_DELETE; \
-    class_name &operator=(const class_name &) PCTK_EQ_DELETE;
+    class_name(const class_name &) PCTK_EPCTK_DELETE; \
+    class_name &operator=(const class_name &) PCTK_EPCTK_DELETE;
 
 // disable move macro define
 #if PCTK_CC_FEATURE_RVALUE_REFS
 #   define PCTK_DISABLE_MOVE(class_name) \
-    class_name(class_name &&) PCTK_EQ_DELETE; \
-    class_name &operator=(class_name &&) PCTK_EQ_DELETE;
+    class_name(class_name &&) PCTK_EPCTK_DELETE; \
+    class_name &operator=(class_name &&) PCTK_EPCTK_DELETE;
 #else
 #   define PCTK_DISABLE_MOVE(class_name)
 #endif

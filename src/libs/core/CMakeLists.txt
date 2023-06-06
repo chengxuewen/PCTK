@@ -101,6 +101,12 @@ pctk_add_library(${PCTK_LIB_NAME}
     source/thread/pctkAtomicInt.h
     source/tools/pctkError.cpp
     source/tools/pctkError.h
+    source/tools/pctkException.cpp
+    source/tools/pctkException.h
+    source/tools/pctkFlags.h
+    source/tools/pctkString.h
+    source/tools/pctkTypeInfo.h
+    source/tools/pctkTypeTraits.h
     PRECOMPILED_HEADER
     "source/pctkCorePch.h"
     LIBRARIES
