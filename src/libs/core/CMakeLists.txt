@@ -99,12 +99,15 @@ pctk_add_library(${PCTK_LIB_NAME}
     source/plugin/pctkSharedLibrary.h
     source/plugin/pctkSharedLibrary_p.h
     source/thread/pctkAtomicInt.h
+    source/tools/pctkAny.h
     source/tools/pctkError.cpp
     source/tools/pctkError.h
     source/tools/pctkException.cpp
     source/tools/pctkException.h
     source/tools/pctkFlags.h
     source/tools/pctkString.h
+    source/tools/pctkTag.cpp
+    source/tools/pctkTag.h
     source/tools/pctkTypeInfo.h
     source/tools/pctkTypeTraits.h
     PRECOMPILED_HEADER

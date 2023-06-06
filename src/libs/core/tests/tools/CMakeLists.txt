@@ -26,9 +26,15 @@
 #
 ########################################################################################################################
 
+set(PCTK_TEST_LIB WrapCppUTest::WrapCppUTest)
 
+pctk_internal_add_test(pctk_tst_core_any
+    SOURCES
+    tst_any.cpp
+    LIBRARIES
+    ${PCTK_TEST_LIB})
 pctk_internal_add_test(pctk_tst_core_flags
     SOURCES
     tst_flags.cpp
     LIBRARIES
-    WrapCppUTest::WrapCppUTest)
+    ${PCTK_TEST_LIB})
