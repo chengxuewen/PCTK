@@ -76,14 +76,14 @@ pctk_configure_compile_test(STDC_ATOMIC
     LABEL "Check standard c atomic"
     CODE
     "#include <stdatomic.h>
-     #if defined(__STDC_NO_ATOMICS__) || __STDC_NO_ATOMICS__
-     #   error \"no stdc atomics\"
-     #endif
-     int main(void)
-     {
+    #if defined(__STDC_NO_ATOMICS__) || __STDC_NO_ATOMICS__
+    #   error \"no stdc atomics\"
+    #endif
+    int main(void)
+    {
         _Atomic int value;
         return 0;
-     }")
+    }")
 pctk_configure_feature("STDC_ATOMIC" PUBLIC
     LABEL "Use standard c atomic"
     AUTODETECT TEST_STDC_ATOMIC AND (NOT PCTK_FEATURE_STDCXX_ATOMIC)
@@ -101,14 +101,14 @@ pctk_configure_compile_test(STDCXX_THREAD
     LABEL "Check standard cxx thread"
     CODE
     "#include <thread>
-     #include <mutex>
-     int main(void)
-     {
+    #include <mutex>
+    int main(void)
+    {
         std::thread trd；
         std::future fue;
         std::mutex mux;
         return 0;
-     }")
+    }")
 pctk_configure_feature("STDCXX_THREAD" PUBLIC
     LABEL "Use standard cxx thread"
     AUTODETECT TEST_STDCXX_THREAD
@@ -118,17 +118,17 @@ pctk_configure_compile_test(STDC_THREAD
     LABEL "Check standard c thread"
     CODE
     "#include <threads.h>
-     #if defined(__STDC_NO_THREADS__) || __STDC_NO_THREADS__
-     #   error \"no stdc threads\"
-     #endif
-     int main(void)
-     {
+    #if defined(__STDC_NO_THREADS__) || __STDC_NO_THREADS__
+    #   error \"no stdc threads\"
+    #endif
+    int main(void)
+    {
         cnd_t cond;
         mtx_t mutex;
         tss_t key;
         thrd_t thread;
         return 0;
-     }")
+    }")
 pctk_configure_feature("STDC_THREAD" PUBLIC
     LABEL "Use standard c thread"
     AUTODETECT TEST_STDC_THREAD AND (NOT TEST_STDCXX_THREAD)
@@ -140,20 +140,19 @@ pctk_configure_compile_test(STD_TIME
     LABEL "Check standard c time"
     CODE
     "#include <time.h>
-         #if !defined(TIME_UTC) || !TIME_UTC
-         #   error \"no stdc time\"
-         #endif
-         int main(void)
-         {
-         struct timespec ts;
-         timespec_get(&ts, TIME_UTC);
-         return 0;
-         }")
+    #if !defined(TIME_UTC) || !TIME_UTC
+    #   error \"no stdc time\"
+    #endif
+    int main(void)
+    {
+        struct timespec ts;
+        timespec_get(&ts, TIME_UTC);
+        return 0;
+    }")
 pctk_configure_feature("STD_TIME" PUBLIC
     LABEL "Use standard c time"
     AUTODETECT TEST_STD_TIME
     CONDITION TEST_STD_TIME)
-
 
 pctk_configure_feature("TIMEZONE" PUBLIC
     SECTION "Utilities"
@@ -612,163 +611,163 @@ pctk_configure_compile_test(TYPEOF
     LABEL "Check gnu typeof"
     CODE
     "#include <stdlib.h>
-         int main(void)
-         {
-         typeof(int) i = 0;
-         return 0;
-         }")
+    int main(void)
+    {
+        typeof(int) i = 0;
+        return 0;
+    }")
 # gnuc varargs macros
 pctk_configure_compile_test(GNUC_VARARGS
     LABEL "Check gnuc varargs macros"
     CODE
     "#include <stdarg.h>
-         void output(void *p, char *str, ...) {}
-         #define call(p, args...) output(p, ##args)
-         int main(void)
-         {
-         call(0, \"test %d\", 1);
-         return 0;
-         }")
+    void output(void *p, char *str, ...) {}
+    #define call(p, args...) output(p, ##args)
+    int main(void)
+    {
+        call(0, \"test %d\", 1);
+        return 0;
+    }")
 # iso varargs macros
 pctk_configure_compile_test(ISO_VARARGS
     LABEL "Check iso varargs macros"
     CODE
     "#include <stdarg.h>
-         void output(void *p, char *str, ...) {}
-         #define call(p, ...) output(p, __VA_ARGS__)
-         int main(void)
-         {
-         call(0, \"test %d\", 1);
-         return 0;
-         }")
+    void output(void *p, char *str, ...) {}
+    #define call(p, ...) output(p, __VA_ARGS__)
+    int main(void)
+    {
+        call(0, \"test %d\", 1);
+        return 0;
+    }")
 # int64_t is long type
 pctk_configure_compile_test(INT64_IS_LONG_TYPE
     LABEL "Check int64_t is long type"
     FLAGS -Werror
     CODE
     "#if defined(_AIX) && !defined(__GNUC__)
-         #pragma options langlvl=stdc99
-         #endif
-         #pragma GCC diagnostic error \"-Wincompatible-pointer-types\"
-         #include <stdint.h>
-         #include <stdio.h>
-         int main(void)
-         {
-         int64_t i1 = 1;
-         long *i2 = &i1;
-         return 0;
-         }")
+    #pragma options langlvl=stdc99
+    #endif
+    #pragma GCC diagnostic error \"-Wincompatible-pointer-types\"
+    #include <stdint.h>
+    #include <stdio.h>
+    int main(void)
+    {
+        int64_t i1 = 1;
+        long *i2 = &i1;
+        return 0;
+    }")
 # int64_t is long long type
 pctk_configure_compile_test(INT64_IS_LONG_LONG_TYPE
     LABEL "Check int64_t is long long type"
     FLAGS -Werror
     CODE
     "#if defined(_AIX) && !defined(__GNUC__)
-         #pragma options langlvl=stdc99
-         #endif
-         #pragma GCC diagnostic error \"-Wincompatible-pointer-types\"
-         #include <stdint.h>
-         #include <stdio.h>
-         int main(void)
-         {
-         int64_t i1 = 1;
-         long long *i2 = &i1;
-         return 0;
-         }")
+    #pragma options langlvl=stdc99
+    #endif
+    #pragma GCC diagnostic error \"-Wincompatible-pointer-types\"
+    #include <stdint.h>
+    #include <stdio.h>
+    int main(void)
+    {
+        int64_t i1 = 1;
+        long long *i2 = &i1;
+        return 0;
+    }")
 # size_t is short type
 pctk_configure_compile_test(SIZET_IS_SHORT_TYPE
     LABEL "Check size_t is short type"
     FLAGS -Werror
     CODE
     "#include <stddef.h>
-         size_t f (size_t *i) { return *i + 1; }
-         int main(void)
-         {
-         unsigned short i = 0;
-         f (&i);
-         return 0;
-         }")
+    size_t f (size_t *i) { return *i + 1; }
+    int main(void)
+    {
+        unsigned short i = 0;
+        f (&i);
+        return 0;
+    }")
 # size_t is int type
 pctk_configure_compile_test(SIZET_IS_INT_TYPE
     LABEL "Check size_t is int type"
     FLAGS -Werror
     CODE
     "#include <stddef.h>
-         size_t f (size_t *i) { return *i + 1; }
-         int main(void)
-         {
-         unsigned int i = 0;
-         f (&i);
-         return 0;
-         }")
+    size_t f (size_t *i) { return *i + 1; }
+    int main(void)
+    {
+        unsigned int i = 0;
+        f (&i);
+        return 0;
+    }")
 # size_t is long type
 pctk_configure_compile_test(SIZET_IS_LONG_TYPE
     LABEL "Check size_t is long type"
     FLAGS -Werror
     CODE
     "#include <stddef.h>
-         size_t f (size_t *i) { return *i + 1; }
-         int main(void)
-         {
-         unsigned long i = 0;
-         f (&i);
-         return 0;
-         }")
+    size_t f (size_t *i) { return *i + 1; }
+    int main(void)
+    {
+        unsigned long i = 0;
+        f (&i);
+        return 0;
+    }")
 # size_t is long long type
 pctk_configure_compile_test(SIZET_IS_LONG_LONG_TYPE
     LABEL "Check size_t is long long type"
     FLAGS -Werror
     CODE
     "#include <stddef.h>
-         size_t f (size_t *i) { return *i + 1; }
-         int main(void)
-         {
-         unsigned long long i = 0;
-         f (&i);
-         return 0;
-         }")
+    size_t f (size_t *i) { return *i + 1; }
+    int main(void)
+    {
+        unsigned long long i = 0;
+        f (&i);
+        return 0;
+    }")
 # Mac OS X Carbon support
 pctk_configure_compile_test(CARBON
     LABEL "Check Mac OS X Carbon support"
     CODE
     "#include <Carbon/Carbon.h>
-         #include <CoreServices/CoreServices.h>
-         int main(void)
-         {
-         return 0;
-         }")
+    #include <CoreServices/CoreServices.h>
+    int main(void)
+    {
+        return 0;
+    }")
 # Mac OS X Cocoa support
 pctk_configure_compile_test(COCOA
     LABEL "Check Mac OS X Cocoa support"
     CODE
     "#include <Cocoa/Cocoa.h>
-         #ifdef GNUSTEP_BASE_VERSION
-         #   error \"Detected GNUstep, not Cocoa\"
-         #endif
-         int main(void)
-         {
-         return 0;
-         }")
+    #ifdef GNUSTEP_BASE_VERSION
+    #   error \"Detected GNUstep, not Cocoa\"
+    #endif
+    int main(void)
+    {
+        return 0;
+    }")
 # nl_langinfo and CODESET
 pctk_configure_compile_test(LANGINFO_CODESET
     LABEL "Check for nl_langinfo and CODESET"
     CODE
     "#include <langinfo.h>
-         int main(void)
-         {
-         char *codeset = nl_langinfo(CODESET);
-         return 0;
-         }")
+    int main(void)
+    {
+        char *codeset = nl_langinfo(CODESET);
+        return 0;
+    }")
 # nl_langinfo and _NL_TIME_CODESET
 pctk_configure_compile_test(LANGINFO_TIME_CODESET
     LABEL "Check for nl_langinfo and _NL_TIME_CODESET"
     CODE
     "#include <langinfo.h>
-         int main(void)
-         {
-         char *codeset = nl_langinfo(_NL_TIME_CODESET);
-         return 0;
-         }")
+    int main(void)
+    {
+        char *codeset = nl_langinfo(_NL_TIME_CODESET);
+        return 0;
+    }")
 
 
 pctk_configure_definition("PCTK_HAS_COCOA" PUBLIC VALUE ${TEST_COCOA})

@@ -308,7 +308,7 @@ include(PCTKPublicDependencyHelpers)
 #include(PCTKPublicToolHelpers)
 
 
-set(INPUT_PCTK_FEATURE_STDCXX_ATOMIC OFF)
+set(INPUT_PCTK_FEATURE_STDCXX_ATOMIC ON)
 #-----------------------------------------------------------------------------------------------------------------------
 # Set build options
 #-----------------------------------------------------------------------------------------------------------------------

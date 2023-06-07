@@ -138,6 +138,26 @@ typedef char32_t pctk_unichar32_t;
 typedef pctk_uint32_t pctk_unichar32_t;
 #endif
 
+#if PCTK_HAS_PTRDIFF_T
+typedef ptrdiff_t pctk_ptrdiff_t;
+typedef ptrdiff_t pctk_intptr_t;
+typedef size_t pctk_uintptr_t;
+#elif PCTK_VOIDP_SIZE == PCTK_INT_SIZE
+typedef signed int pctk_ptrdiff_t;
+typedef signed int pctk_intptr_t;
+typedef unsigned int pctk_uintptr_t;
+#elif PCTK_VOIDP_SIZE == PCTK_LONG_SIZE
+typedef signed long pctk_ptrdiff_t;
+typedef signed long pctk_intptr_t;
+typedef unsigned long pctk_uintptr_t;
+#elif PCTK_VOIDP_SIZE == PCTK_LONG_LONG_SIZE
+typedef signed long long pctk_ptrdiff_t;
+typedef signed long long pctk_intptr_t;
+typedef unsigned long long pctk_uintptr_t;
+#else
+#   error "Could not determine size of void *"
+#endif
+
 typedef int pctk_boolean_t;
 #define pctk_true            1
 #define pctk_false           0
@@ -304,25 +324,8 @@ typedef double pctk_real_t;
 #endif
 
 #if PCTK_VOIDP_SIZE == PCTK_INT_SIZE
-#   define PCTK_INTPTR_MODIFIER  ""
-#   define PCTK_INTPTR_FORMAT    "i"
-#   define PCTK_UINTPTR_FORMAT   "u"
-#elif PCTK_VOIDP_SIZE == PCTK_LONG_SIZE
-#   define PCTK_INTPTR_MODIFIER  "l"
-#   define PCTK_INTPTR_FORMAT    "li"
-#   define PCTK_UINTPTR_FORMAT   "lu"
-#elif PCTK_VOIDP_SIZE == PCTK_LONG_LONG_SIZE
-#   define PCTK_INTPTR_MODIFIER  "ll"
-#   define PCTK_INTPTR_FORMAT    "lli"
-#   define PCTK_UINTPTR_FORMAT   "llu"
-#else
-#   error "Could not determine size of void *"
-#endif
-
-#if PCTK_VOIDP_SIZE == PCTK_INT_SIZE
-typedef signed int pctk_intptr_t;
-typedef unsigned int pctk_uintptr_t;
 #   define PCTK_INTPTR_MODIFIER      ""
+#   define PCTK_PTRDIFF_FORMAT       "i"
 #   define PCTK_INTPTR_FORMAT        "i"
 #   define PCTK_UINTPTR_FORMAT       "u"
 #   define PCTK_POINTER_TO_INT(p)    ((pctk_int_t)(pctk_int_t)(p))
@@ -330,9 +333,8 @@ typedef unsigned int pctk_uintptr_t;
 #   define PCTK_INT_TO_POINTER(i)    ((pctk_pointer_t)(pctk_int_t)(i))
 #   define PCTK_UINT_TO_POINTER(u)    ((pctk_pointer_t)(pctk_uint_t)(u))
 #elif PCTK_VOIDP_SIZE == PCTK_LONG_SIZE
-typedef signed long pctk_intptr_t;
-typedef unsigned long pctk_uintptr_t;
 #   define PCTK_INTPTR_MODIFIER      "l"
+#   define PCTK_PTRDIFF_FORMAT       "li"
 #   define PCTK_INTPTR_FORMAT        "li"
 #   define PCTK_UINTPTR_FORMAT       "lu"
 #   define PCTK_POINTER_TO_INT(p)    ((pctk_int_t)(pctk_long_t)(p))
@@ -340,9 +342,8 @@ typedef unsigned long pctk_uintptr_t;
 #   define PCTK_INT_TO_POINTER(i)    ((pctk_pointer_t)(pctk_long_t)(i))
 #   define PCTK_UINT_TO_POINTER(u)    ((pctk_pointer_t)(pctk_ulong_t)(u))
 #elif PCTK_VOIDP_SIZE == PCTK_LONG_LONG_SIZE
-typedef signed long long            pctk_intptr_t;
-typedef unsigned long long          pctk_uintptr_t;
 #   define PCTK_INTPTR_MODIFIER      "ll"
+#   define PCTK_PTRDIFF_FORMAT       "lli"
 #   define PCTK_INTPTR_FORMAT        "lli"
 #   define PCTK_UINTPTR_FORMAT       "llu"
 #   define PCTK_POINTER_TO_INT(p)	((pctk_int_t)(pctk_int64_t)(p))
@@ -449,7 +450,6 @@ static pctk_boolean_t pctk__size_mul_overflow(pctk_size_t *dest, pctk_size_t a, 
 #   define PCTK_SIZE_MUL_OVERFLOW(dest, a, b)        pctk__size_mul_overflow(dest, a, b)
 
 #endif  /* !PCTK_HAS_BUILTIN_OVERFLOW_CHECKS */
-
 
 /***********************************************************************************************************************
     PCTK function type define

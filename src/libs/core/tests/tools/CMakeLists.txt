@@ -33,6 +33,11 @@ pctk_internal_add_test(pctk_tst_core_any
     tst_any.cpp
     LIBRARIES
     ${PCTK_TEST_LIB})
+pctk_internal_add_test(pctk_tst_core_atomic
+    SOURCES
+    tst_atomic.cpp
+    LIBRARIES
+    ${PCTK_TEST_LIB})
 pctk_internal_add_test(pctk_tst_core_flags
     SOURCES
     tst_flags.cpp
